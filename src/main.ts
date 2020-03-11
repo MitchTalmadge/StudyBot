@@ -3,23 +3,9 @@ import * as dotenv from 'dotenv';
 import { DatabaseService } from './services/database';
 
 class StudyBot {
-  private client: Discord.Client;
+  private static client: Discord.Client;
 
-  constructor() {
-    this.init()
-      .then(() => {
-        console.log('Initialization complete.');
-      })
-      .catch((err) => {
-        console.error('Failed to initialize.');
-        console.error(err);
-      });
-  }
-
-  public async init() {
-    // Load environment variables.
-    dotenv.config();
-
+  public static async init() {
     // Connect to database.
     console.log('Connecting to database...');
     await DatabaseService.connect(process.env.DB_ADDRESS, process.env.DB_NAME);
@@ -31,7 +17,7 @@ class StudyBot {
     this.client.on('ready', () => this.onDiscordReady());
   }
 
-  private onDiscordReady(): void {
+  private static onDiscordReady(): void {
     console.log('Login successful.');
 
     console.log('Connected to the following Guilds:');
@@ -41,4 +27,12 @@ class StudyBot {
   }
 }
 
-export default new StudyBot();
+// Load environment variables.
+dotenv.config();
+
+// Initialize.
+StudyBot.init()
+  .catch((err) => {
+    console.error('Failed to initialize.');
+    console.error(err);
+  });
