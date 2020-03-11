@@ -6,12 +6,14 @@
     "main": "./dist/main.js",
     "scripts": {
         "debug": "nodemon --inspect ./src/main.ts",
+        "debug:mongo": "nodemon --inspect ./dev/init.ts",
         "build": "rimraf dist && tsc"
     },
     "nodemonConfig": {
         "delay": 1000,
         "watch": [
-            "src"
+            "src",
+            "dev"
         ],
         "execMap": {
             "ts": "node --require ts-node/register"
@@ -34,6 +36,12 @@
     },
     "devDependencies": {
         "@types/node": "^13.9.0",
+        "@typescript-eslint/eslint-plugin": "^2.3.3",
+        "@typescript-eslint/parser": "^2.3.3",
+        "eslint": "^6.5.1",
+        "eslint-config-airbnb-base": "^14.0.0",
+        "eslint-plugin-import": "^2.18.2",
+        "mongodb-memory-server": "^6.3.2",
         "nodemon": "^2.0.2",
         "rimraf": "^3.0.2",
         "ts-node": "^8.6.2",
