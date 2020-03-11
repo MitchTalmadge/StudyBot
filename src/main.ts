@@ -24,6 +24,15 @@ class StudyBot {
     this.client.guilds.cache.forEach((guild) => {
       console.log(`> [${guild.id}] ${guild.name}`);
     });
+
+    if (this.client.guilds.cache.size === 0) {
+      console.error(`This bot must be connected to a guild. Please add this bot to a guild before starting the instance. 
+      You can do this by visiting the following URL: https://discordapp.com/oauth2/authorize?client_id=${this.client.user.id}&scope=bot&permissions=0`);
+      process.exit();
+    } else if (this.client.guilds.cache.size > 1) {
+      console.error('This bot only supports one guild at a time. Please run multiple instances to handle multiple guilds.');
+      process.exit();
+    }
   }
 }
 
