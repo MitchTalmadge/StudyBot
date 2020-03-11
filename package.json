@@ -3,7 +3,21 @@
     "description": "A Discord bot for servers that focus on particular university majors.",
     "authors": "Mitch Talmadge <MitchTalmadge>",
     "version": "1.0.0",
-    "main": "dist/main.js",
+    "main": "./dist/main.js",
+    "scripts": {
+        "dev": "nodemon --inspect ./src/main.ts",
+        "build": "rimraf dist && tsc"
+    },
+    "nodemonConfig": {
+        "delay": 1000,
+        "watch": [
+            "src"
+        ],
+        "execMap": {
+            "ts": "node --require ts-node/register"
+        },
+        "ext": "*"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/MitchTalmadge/StudyBot.git"
@@ -20,6 +34,9 @@
     },
     "devDependencies": {
         "@types/node": "^13.9.0",
+        "nodemon": "^2.0.2",
+        "rimraf": "^3.0.2",
+        "ts-node": "^8.6.2",
         "typescript": "^3.8.3"
     }
 }

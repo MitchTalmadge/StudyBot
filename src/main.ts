@@ -1,5 +1,5 @@
-import Discord from 'discord.js';
-import dotenv from 'dotenv';
+const Discord = require('discord.js');
+const dotenv = require('dotenv');
 
 // Load environment variables.
 dotenv.config();
