@@ -25,13 +25,14 @@ class StudyBot {
     await DatabaseService.connect(process.env.DB_ADDRESS, process.env.DB_NAME);
 
     // Login to Discord.
+    console.log('Logging into Discord...');
     this.client = new Discord.Client();
     this.client.login(process.env.DISCORD_TOKEN);
     this.client.on('ready', () => this.onDiscordReady());
   }
 
   private onDiscordReady(): void {
-    console.log('Logged into Discord.');
+    console.log('Login successful.');
 
     console.log('Connected to the following Guilds:');
     this.client.guilds.cache.forEach((guild) => {
