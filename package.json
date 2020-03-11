@@ -33,7 +33,8 @@
         "discord.js": "^12.0.2",
         "dotenv": "^8.2.0",
         "mongoose": "^5.9.4",
-        "node": "^13.10.1"
+        "node": "^13.10.1",
+        "rxjs": "^6.5.4"
     },
     "devDependencies": {
         "@types/mongoose": "^5.7.5",
