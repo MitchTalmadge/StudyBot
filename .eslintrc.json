@@ -20,9 +20,25 @@
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": 1,
-    "import/prefer-default-export": 0,
     "consistent-return": 0,
-    "no-console": 0
+    "eol-last": "warn",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "import/prefer-default-export": 0,
+    "indent": "warn",
+    "no-console": 0,
+    "no-trailing-spaces": "warn",
+    "padded-blocks": "warn",
+    "quotes": "warn",
+    "semi": "warn"
   },
   "settings": {
     "import/resolver": {
