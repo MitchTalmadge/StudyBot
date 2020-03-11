@@ -1,19 +1,43 @@
 import * as Discord from 'discord.js';
+import * as dotenv from 'dotenv';
+import { DatabaseService } from './services/database';
 
-const dotenv = require('dotenv');
+class StudyBot {
+  private client: Discord.Client;
 
-// Load environment variables.
-dotenv.config();
+  constructor() {
+    this.init()
+      .then(() => {
+        console.log('Initialization complete.');
+      })
+      .catch((err) => {
+        console.error('Failed to initialize.');
+        console.error(err);
+      });
+  }
 
-// Login to Discord.
-const client = new Discord.Client();
-client.login(process.env.DISCORD_TOKEN);
+  public async init() {
+    // Load environment variables.
+    dotenv.config();
 
-client.on('ready', () => {
-  console.log('Bot is ready.');
+    // Connect to database.
+    console.log('Connecting to database...');
+    await DatabaseService.connect(process.env.DB_ADDRESS, process.env.DB_NAME);
 
-  console.log('Connected to the following Guilds:');
-  client.guilds.cache.forEach((guild) => {
-    console.log(`> [${guild.id}] ${guild.name}`);
-  });
-});
+    // Login to Discord.
+    this.client = new Discord.Client();
+    this.client.login(process.env.DISCORD_TOKEN);
+    this.client.on('ready', () => this.onDiscordReady());
+  }
+
+  private onDiscordReady(): void {
+    console.log('Logged into Discord.');
+
+    console.log('Connected to the following Guilds:');
+    this.client.guilds.cache.forEach((guild) => {
+      console.log(`> [${guild.id}] ${guild.name}`);
+    });
+  }
+}
+
+export default new StudyBot();
