@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "main": "./dist/main.js",
     "scripts": {
-        "dev": "nodemon --inspect ./src/main.ts",
+        "debug": "nodemon --inspect ./src/main.ts",
         "build": "rimraf dist && tsc"
     },
     "nodemonConfig": {
