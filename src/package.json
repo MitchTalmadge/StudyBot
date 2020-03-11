@@ -10,6 +10,7 @@
         "node": "^13.10.1"
     },
     "devDependencies": {
+        "@types/node": "^13.9.0",
         "typescript": "^3.8.3"
     }
 }
