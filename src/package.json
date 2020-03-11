@@ -4,6 +4,15 @@
     "authors": "Mitch Talmadge <MitchTalmadge>",
     "version": "1.0.0",
     "main": "dist/main.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MitchTalmadge/StudyBot.git"
+    },
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/MitchTalmadge/StudyBot/issues"
+    },
+    "homepage": "https://github.com/MitchTalmadge/StudyBot#readme",
     "dependencies": {
         "discord.js": "^12.0.2",
         "dotenv": "^8.2.0",
