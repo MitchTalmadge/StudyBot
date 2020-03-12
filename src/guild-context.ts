@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { CourseSelectionController } from "./controllers/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { Major } from "./models/major";
@@ -9,21 +10,44 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
-
   private courseService: CourseService;
+
+  private courseSelectionController: CourseSelectionController;
 
   constructor(
     private client: Discord.Client,
     public guild: Discord.Guild,
     private guildConfig: GuildConfig,
     public major: Major) {
+    this.initServices();
+    this.initControllers();
+  }
+
+  private initServices(): void {
     this.courseService = new CourseService(
       this,
-      new WebCatalogFactory().getWebCatalog(guildConfig.webCatalog)
+      new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog)
+    );
+    this.guildLog("Initializing course list...");
+    this.courseService.updateCourseList();
+  }
+
+  private initControllers(): void {
+    this.courseSelectionController = new CourseSelectionController(
+      this,
+      this.courseService
     );
   }
 
-  public onMessageReceived(message: Discord.Message | Discord.PartialMessage) {
-    console.log(`Message received from ${message.author.username}: ${message.content}`);
+  public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+    if (message.channel instanceof Discord.TextChannel) {
+      if (message.channel.name === CourseSelectionController.CHANNEL_NAME) {
+        this.courseSelectionController.onMessageReceived(message);
+      }
+    }
+  }
+
+  private guildLog(message: string): void {
+    console.log(`[G: ${this.guild.name}] ${message}`);
   }
 }

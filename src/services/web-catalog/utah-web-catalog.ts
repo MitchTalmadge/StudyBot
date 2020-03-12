@@ -29,7 +29,7 @@ export class UtahWebCatalogService implements IWebCatalogService {
       if(catalogCourse.subjectCode.name.toLowerCase() !== major.prefix.toLowerCase())
         return;
       courses.push({
-        number: parseInt(catalogCourse.__catalogCourseId.substring(catalogCourse.subjectCode.name.length)),
+        number: catalogCourse.__catalogCourseId.substring(catalogCourse.subjectCode.name.length),
         title: catalogCourse.title,
         major: major
       });
