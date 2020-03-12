@@ -26,7 +26,7 @@ export class UtahWebCatalogService implements IWebCatalogService {
     let courses: Course[] = [];
     const catalogCourses = <KualiCourse[]>catalogDataRes.data;
     catalogCourses.forEach(catalogCourse => {
-      if(catalogCourse.subjectCode.name.toLowerCase !== major.prefix.toLowerCase)
+      if(catalogCourse.subjectCode.name.toLowerCase() !== major.prefix.toLowerCase())
         return;
       courses.push({
         number: parseInt(catalogCourse.__catalogCourseId.substring(catalogCourse.subjectCode.name.length)),

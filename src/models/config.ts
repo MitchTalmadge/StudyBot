@@ -1,15 +1,17 @@
-export interface StudyBotConfig {
+export interface Config {
   discordToken: string;
 
-  database: StudyBotDatabaseConfig;
+  database: DatabaseConfig;
 
-  guilds: {[guildId: string]: {
-    majorPrefix: string;
-    webCatalog: string;
-  }};
+  guilds: {[guildId: string]: GuildConfig};
 }
 
-export interface StudyBotDatabaseConfig {
+export interface DatabaseConfig {
   address: string;
   name: string;
+}
+
+export interface GuildConfig {
+  majorPrefix: string;
+  webCatalog: string;
 }

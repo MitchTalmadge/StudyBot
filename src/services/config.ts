@@ -1,11 +1,11 @@
 import * as fs from "fs";
-import { StudyBotConfig } from "src/models/config";
+import { Config } from "src/models/config";
 import { isArray } from "util";
 
 export class ConfigService {
-  private static config: StudyBotConfig;
+  private static config: Config;
 
-  public static getConfig(): StudyBotConfig {
+  public static getConfig(): Config {
     return this.config;
   }
 

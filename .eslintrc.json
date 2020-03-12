@@ -17,14 +17,30 @@
     "@typescript-eslint"
   ],
   "rules": {
-    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
     "@typescript-eslint/no-useless-constructor": "warn",
-    "eol-last": "warn",
-    "indent": ["warn", 2],
+    "indent": [
+      "warn",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
     "lines-between-class-members": "warn",
     "no-trailing-spaces": "warn",
-    "object-curly-spacing": ["warn", "always"],
-    "padded-blocks": ["warn", "never"],
+    "object-curly-spacing": [
+      "warn",
+      "always"
+    ],
+    "padded-blocks": [
+      "warn",
+      "never"
+    ],
     "quotes": "warn",
     "semi": "warn",
     "sort-imports": "warn"

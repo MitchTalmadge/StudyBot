@@ -8,4 +8,3 @@ export interface IWebCatalogService {
   getCourses(major: Major): Promise<Course[]>;
 }
 
-

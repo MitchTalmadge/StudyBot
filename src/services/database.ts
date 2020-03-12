@@ -1,10 +1,10 @@
 import mongoose, { Connection, Mongoose } from "mongoose";
-import { StudyBotDatabaseConfig } from "src/models/config";
+import { DatabaseConfig } from "src/models/config";
 
 export class DatabaseService {
   private static mongooseInstance: Mongoose;
 
-  public static async connect(dbConfig: StudyBotDatabaseConfig) {
+  public static async connect(dbConfig: DatabaseConfig) {
     this.mongooseInstance = await mongoose.connect(`mongodb://${dbConfig.address}/${dbConfig.name}`, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
