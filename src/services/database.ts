@@ -1,17 +1,18 @@
-import mongoose, { Connection, Mongoose } from 'mongoose';
+import mongoose, { Connection, Mongoose } from "mongoose";
+import { StudyBotDatabaseConfig } from "src/models/config";
 
 export class DatabaseService {
   private static mongooseInstance: Mongoose;
 
-  public static async connect(address: string, name: string) {
-    if (!address) {
-      throw new Error('The database address is empty or undefined.');
+  public static async connect(dbConfig: StudyBotDatabaseConfig) {
+    if (!dbConfig.address) {
+      throw new Error("The database address is empty or undefined.");
     }
     if (!name) {
-      throw new Error('The database name is empty or undefined.');
+      throw new Error("The database name is empty or undefined.");
     }
 
-    this.mongooseInstance = await mongoose.connect(`mongodb://${address}/${name}`, {
+    this.mongooseInstance = await mongoose.connect(`mongodb://${dbConfig.address}/${dbConfig.name}`, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

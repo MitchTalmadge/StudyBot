@@ -13,16 +13,17 @@ export class CourseService {
   }
 
   /**
-   * Attempts to update the course list using the web scraper.
+   * Attempts to update the course list using the web catalog.
    */
   public async updateCourseList(): Promise<Course[]> {
     try {
-      const scrapedCourses = await this.webCatalogService.getCourses({ prefix: process.env.MAJOR_PREFIX });
+      const courses = await this.webCatalogService.getCourses({ prefix: process.env.MAJOR_PREFIX });
+      console.log(`${courses.length} courses retrieved from the web catalog.`);
 
-      this.courseList$.next(scrapedCourses);
-      return scrapedCourses;
+      this.courseList$.next(courses);
+      return courses;
     } catch (err) {
-      console.error("Failed to get course list from web scraper. Falling back to allowing all courses by default.");
+      console.error("Failed to get course list from the web catalog.");
       console.error(err);
 
       this.courseList$.next(null);

@@ -1,0 +1,17 @@
+{
+  "discordToken": null,
+  "database": {
+    "address": "127.0.0.1:27017",
+    "name": "studybot"
+  },
+  "guilds": {
+    "28357239856723895": {
+      "majorPrefix": "cs",
+      "webCatalog": "utah"
+    },
+    "89233498652365349": {
+      "majorPrefix": "phys",
+      "webCatalog": null
+    }
+  }
+}

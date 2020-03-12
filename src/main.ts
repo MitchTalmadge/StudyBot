@@ -1,24 +1,30 @@
 import * as Discord from "discord.js";
-import * as dotenv from "dotenv";
+import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database";
+import { GuildContext } from "./guild-context";
+import { Major } from "./models/major";
 
 class StudyBot {
   private static client: Discord.Client;
 
+  private static guildContexts: {[guildId: string]: GuildContext} = {};
+
   public static async init() {
+    // Load configuration.
+    console.log("Loading config...");
+    await ConfigService.loadAndValidateConfig();
+
     // Connect to database.
     console.log("Connecting to database...");
-    await DatabaseService.connect(process.env.DB_ADDRESS, process.env.DB_NAME);
-
-    // Update course list.
-    console.log("Updating course list...");
-
+    await DatabaseService.connect(ConfigService.getConfig().database);
 
     // Login to Discord.
     console.log("Logging into Discord...");
     this.client = new Discord.Client();
-    this.client.login(process.env.DISCORD_TOKEN);
+    this.client.login(ConfigService.getConfig().discordToken);
+
     this.client.on("ready", () => this.onDiscordReady());
+    this.client.on("message", (msg) => this.onMessageReceived(msg));
   }
 
   private static onDiscordReady(): void {
@@ -29,19 +35,33 @@ class StudyBot {
       console.log(`> [${guild.id}] ${guild.name}`);
     });
 
-    if (this.client.guilds.cache.size === 0) {
-      console.error(`This bot must be connected to a guild. Please add this bot to a guild before starting the instance. 
-      You can do this by visiting the following URL: https://discordapp.com/oauth2/authorize?client_id=${this.client.user.id}&scope=bot&permissions=0`);
-      process.exit();
-    } else if (this.client.guilds.cache.size > 1) {
-      console.error("This bot only supports one guild at a time. Please run multiple instances to handle multiple guilds.");
-      process.exit();
-    }
+    this.createGuildContexts();
+  }
+
+  private static createGuildContexts(): void {
+    this.client.guilds.cache.forEach(guild => {
+      const guildConfig = ConfigService.getConfig().guilds[guild.id];
+      if(!guildConfig) {
+        console.log(`This bot is a member of unconfigured guild [${guild.id}] ${guild.name}. No actions will be taken in this guild.`);
+        return;
+      }
+
+      const major: Major = {
+        prefix: guildConfig.majorPrefix.toLowerCase()
+      };
+
+      this.guildContexts[guild.id] = new GuildContext(
+        this.client,
+        guild,
+        major
+      );
+    });
+  }
+
+  private static onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+    this.guildContexts[message.guild.id].onMessageReceived(message);
   }
 }
-
-// Load environment variables.
-dotenv.config();
 
 // Initialize.
 StudyBot.init()
