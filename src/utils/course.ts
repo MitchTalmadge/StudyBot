@@ -1,5 +1,6 @@
 export class CourseUtils {
   public static parseCourseNumberList(list: string): string[] {
-    return list.split(/[\s|,|a-z|\-]+/);
+    const numbers = list.trim().split(/[\s|,|a-z|\-]+/);
+    return numbers.filter(number => number); // Removes empty strings from array.
   }
 }
