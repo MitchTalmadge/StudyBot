@@ -30,7 +30,7 @@ class StudyBot {
   private static onDiscordReady(): void {
     console.log("Login successful.");
 
-    console.log("Connected to the following Guilds:");
+    console.log("Bot is a member of the following Guilds:");
     this.client.guilds.cache.forEach((guild) => {
       console.log(`> [${guild.id}] ${guild.name}`);
     });
@@ -42,7 +42,7 @@ class StudyBot {
     this.client.guilds.cache.forEach(guild => {
       const guildConfig = ConfigService.getConfig().guilds[guild.id];
       if(!guildConfig) {
-        console.log(`This bot is a member of unconfigured guild [${guild.id}] ${guild.name}. No actions will be taken in this guild.`);
+        console.log(`Warning: Bot is a member of unconfigured guild [${guild.id}] ${guild.name}. No actions will be taken in this guild.`);
         return;
       }
 

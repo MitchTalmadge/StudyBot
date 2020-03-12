@@ -1,7 +1,8 @@
-import preInit from './pre-init';
+import preInit from "./pre-init";
+
+process.env.NODE_ENV = "development";
 
 preInit()
   .then(() => {
-    // eslint-disable-next-line global-require
-    require('../src/main');
+    require("../src/main");
   });
