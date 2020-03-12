@@ -7,7 +7,7 @@ import { Major } from "./models/major";
 class StudyBot {
   private static client: Discord.Client;
 
-  private static guildContexts: {[guildId: string]: GuildContext} = {};
+  private static guildContexts: { [guildId: string]: GuildContext } = {};
 
   public static async init() {
     // Load configuration.
@@ -41,7 +41,7 @@ class StudyBot {
   private static createGuildContexts(): void {
     this.client.guilds.cache.forEach(guild => {
       const guildConfig = ConfigService.getConfig().guilds[guild.id];
-      if(!guildConfig) {
+      if (!guildConfig) {
         console.log(`Warning: Bot is a member of unconfigured guild [${guild.id}] ${guild.name}. No actions will be taken in this guild.`);
         return;
       }
@@ -60,6 +60,9 @@ class StudyBot {
   }
 
   private static onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+    if (message.author.id === this.client.user.id)
+      return;
+
     this.guildContexts[message.guild.id].onMessageReceived(message);
   }
 }
