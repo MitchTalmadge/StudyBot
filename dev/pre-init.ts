@@ -15,6 +15,8 @@ async function createInMemoryDatabase() {
   const mongod = new MongoMemoryServer({
     instance: {
       dbPath: path.resolve(__dirname, "../temp/db/"),
+      dbName: "development",
+      port: 27017
     },
   });
   const uri = await mongod.getConnectionString();

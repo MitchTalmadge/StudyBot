@@ -4,6 +4,7 @@ import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { Major } from "./models/major";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
+import { UserService } from "./services/user";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.
@@ -11,6 +12,8 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  */
 export class GuildContext {
   private courseService: CourseService;
+
+  private userService: UserService;
 
   private courseSelectionController: CourseSelectionController;
 
@@ -30,12 +33,17 @@ export class GuildContext {
     );
     this.guildLog("Initializing course list...");
     this.courseService.updateCourseList();
+
+    this.userService = new UserService(
+      this
+    );
   }
 
   private initControllers(): void {
     this.courseSelectionController = new CourseSelectionController(
       this,
-      this.courseService
+      this.courseService,
+      this.userService
     );
   }
 
