@@ -53,13 +53,19 @@ export class ConfigService {
     if (!this.config.guilds) {
       throw Error("The guilds configuration is missing.");
     }
-    if (isArray(this.config.guilds)) {
+    if (Array.isArray(this.config.guilds)) {
       throw Error("The guilds configuration is malformed.");
     }
     Object.keys(this.config.guilds).forEach(guildId => {
       const guild = this.config.guilds[guildId];
-      if (!guild.majorPrefix) {
-        throw Error(`Guild ID ${guildId} configuration has missing or empty major prefix.`);
+      if (!guild.majors) {
+        throw Error(`Guild ID ${guildId} configuration is missing majors array.`);
+      }
+      if (!Array.isArray(guild.majors)) {
+        throw Error(`Guild ID ${guildId} configuration has malformed majors array.`);
+      }
+      if (guild.majors.length === 0) {
+        throw Error(`Guild ID ${guildId} configuration has empty majors array.`);
       }
       //TODO: web catalog validation.
     });

@@ -12,6 +12,6 @@ export interface DatabaseConfig {
 }
 
 export interface GuildConfig {
-  majorPrefix: string;
+  majors: string[];
   webCatalog: string;
 }

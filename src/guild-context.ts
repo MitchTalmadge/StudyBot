@@ -2,9 +2,9 @@ import * as Discord from "discord.js";
 import { CourseSelectionController } from "./controllers/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
-import { Major } from "./models/major";
-import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
+import { MajorMap } from "./models/major-map";
 import { UserService } from "./services/user";
+import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.
@@ -21,7 +21,7 @@ export class GuildContext {
     private client: Discord.Client,
     public guild: Discord.Guild,
     private guildConfig: GuildConfig,
-    public major: Major) {
+    public majors: MajorMap) {
     this.initServices();
     this.initControllers();
   }
@@ -32,7 +32,7 @@ export class GuildContext {
       new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog)
     );
     this.guildLog("Initializing course list...");
-    this.courseService.updateCourseList();
+    this.courseService.updateCourseLists();
 
     this.userService = new UserService(
       this

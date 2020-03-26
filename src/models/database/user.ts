@@ -1,5 +1,6 @@
 // eslint-disable-next-line quotes
 import mongoose, { Document, Schema } from "mongoose";
+import { Course } from "../course";
 import { Moment } from "moment";
 import { VerificationStatus } from "../verification-status";
 
@@ -9,7 +10,10 @@ export interface IUser extends Document {
   verificationStatus: VerificationStatus;
 
   guilds: Map<string, {
-    courseNumbers: string[];
+    courses: {
+      majorPrefix: string,
+      number: string
+    }[];
     coursesLastUpdated: Moment;
   }>
 
@@ -17,21 +21,28 @@ export interface IUser extends Document {
 }
 
 export const UserSchema = new Schema({
-  discordUserId: { type: String, required: true, unique: true },
-  studentId: { type: String, required: false },
-  verificationStatus: { type: Number, required: true, default: VerificationStatus.UNVERIFIED },
+  discordUserId: { type: Schema.Types.String, required: true, unique: true },
+  studentId: { type: Schema.Types.String, required: false },
+  verificationStatus: { type: Schema.Types.Number, required: true, default: VerificationStatus.UNVERIFIED },
 
   guilds: {
     type: Map,
     of: new Schema({
-      courseNumbers: { type: [String], required: true, default: [] },
-      coursesLastUpdated: { type: Date, required: true, default: Date.now() }
+      courses: {
+        type: [
+          new Schema({
+            majorPrefix: { type: Schema.Types.String, required: true },
+            number: { type: Schema.Types.String, required: true }
+          })
+        ], required: true, default: []
+      },
+      coursesLastUpdated: { type: Schema.Types.Date, required: true, default: Date.now() }
     }),
     required: true,
     default: {}
   },
 
-  jailed: { type: Boolean, required: true, default: false }
+  jailed: { type: Schema.Types.Boolean, required: true, default: false }
 });
 
 UserSchema.post("init", (_doc) => {

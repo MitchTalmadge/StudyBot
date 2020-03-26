@@ -3,6 +3,7 @@ import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database";
 import { GuildContext } from "./guild-context";
 import { Major } from "./models/major";
+import { MajorMap } from "./models/major-map";
 
 class StudyBot {
   private static client: Discord.Client;
@@ -46,15 +47,19 @@ class StudyBot {
         return;
       }
 
-      const major: Major = {
-        prefix: guildConfig.majorPrefix.toLowerCase()
-      };
+      const majors: MajorMap = {};
+
+      guildConfig.majors.forEach(majorPrefix => {
+        majors[majorPrefix] = {
+          prefix: majorPrefix.toLowerCase()
+        };
+      });
 
       this.guildContexts[guild.id] = new GuildContext(
         this.client,
         guild,
         guildConfig,
-        major
+        majors
       );
     });
   }

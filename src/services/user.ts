@@ -2,6 +2,7 @@ import * as Discord from "discord.js";
 import { IUser, User } from "src/models/database/user";
 import { Course } from "src/models/course";
 import { GuildContext } from "src/guild-context";
+import _ from "lodash";
 import moment from "moment";
 
 export class UserService {
@@ -22,21 +23,22 @@ export class UserService {
   public async addCoursesToMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
+    const serializedCourses = courses.map(course => {
+      return {
+        majorPrefix: course.major.prefix,
+        number: course.number
+      };
+    });
+
     let guildData = user.guilds.get(this.guildContext.guild.id);
     if (!guildData) {
       user.guilds.set(this.guildContext.guild.id, {
-        courseNumbers: courses.map(course => course.number),
+        courses: serializedCourses,
         coursesLastUpdated: moment()
       });
       user = await user.save();
     } else {
-      courses.forEach(course => {
-        if (guildData.courseNumbers.includes(course.number))
-          return;
-
-        guildData.courseNumbers.push(course.number);
-      });
-
+      guildData.courses = _.unionBy(guildData.courses, serializedCourses, course => `${course.majorPrefix}-${course.number}`);
       user = await user.save();
     }
 
@@ -48,15 +50,22 @@ export class UserService {
   public async removeCoursesFromMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
+    const serializedCourses = courses.map(course => {
+      return {
+        majorPrefix: course.major.prefix,
+        number: course.number
+      };
+    });
+
     let guildData = user.guilds.get(this.guildContext.guild.id);
     if (!guildData) {
       user.guilds.set(this.guildContext.guild.id, {
-        courseNumbers: [],
+        courses: [],
         coursesLastUpdated: moment()
       });
       user = await user.save();
     } else {
-      guildData.courseNumbers = guildData.courseNumbers.filter(courseNumber => !courses.some(course => course.number === courseNumber));
+      guildData.courses = _.differenceBy(guildData.courses, serializedCourses, course => `${course.majorPrefix}-${course.number}`);
       user = await user.save();
     }
 

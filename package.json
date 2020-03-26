@@ -35,12 +35,14 @@
     "dependencies": {
         "axios": "^0.19.2",
         "discord.js": "^12.0.2",
+        "lodash": "^4.17.15",
         "moment": "^2.24.0",
         "mongoose": "^5.9.4",
         "node": "^13.10.1",
         "rxjs": "^6.5.4"
     },
     "devDependencies": {
+        "@types/lodash": "^4.14.149",
         "@types/mongoose": "^5.7.5",
         "@types/node": "^13.9.0",
         "@typescript-eslint/eslint-plugin": "^2.3.3",
