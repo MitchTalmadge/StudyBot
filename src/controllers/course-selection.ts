@@ -15,7 +15,9 @@ export class CourseSelectionController {
     private guildContext: GuildContext,
     private courseService: CourseService,
     private userService: UserService,
-  ) { }
+  ) { 
+    // TODO: Delete all messages in channel on startup and write an instructions message.
+  }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.content.toLowerCase().startsWith("join")) {
@@ -66,7 +68,7 @@ export class CourseSelectionController {
       .then(allCourses => {
         // Remove invalid courses and keep track of them to show the user.
         let invalidCourseNames: string[] = [];
-        allCourses.map((courses, coursesIndex) => {
+        allCourses = allCourses.map((courses, coursesIndex) => {
           return courses.filter((course, index) => {
             if (!course) {
               invalidCourseNames.push(`${Object.keys(numbers)[coursesIndex]}${Object.values(numbers)[coursesIndex][index]}`);
@@ -78,14 +80,14 @@ export class CourseSelectionController {
 
         // Merge courses
         const mergedCourses = _.flatten(allCourses);
-        const mergedCoursesNames = mergedCourses.map(course => `${course.major.prefix}-${course.number}`);
+        const mergedCoursesNames = mergedCourses.map(course => CourseUtils.convertToString(course));
 
         // Add all courses to member.
         this.userService.addCoursesToMember(message.member, mergedCourses)
           .then(() => {
             if (invalidCourseNames.length > 0) {
               this.sendTempReply(message,
-                `${message.author}, I have added you to the following courses: ${mergedCoursesNames.join(", ")}. However, the following courses do not appear to be valid: [${invalidCourseNames.join(", ")}]. If you think this is a mistake, ask an admin for help!`
+                `${message.author}, I have added you to the following courses: ${mergedCoursesNames.join(", ")}. However, the following courses do not appear to be valid: ${invalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`
               );
             } else {
               this.sendTempReply(message, `Success! ${message.author}, I have added you to the following courses: ${mergedCoursesNames.join(", ")}`);
@@ -107,6 +109,7 @@ export class CourseSelectionController {
       });
   }
 
+  // TODO: remove duplicate code
   private onLeaveRequest(message: Discord.Message | Discord.PartialMessage) {
     const numbers = CourseUtils.parseCourseNumberList(message.content.substring("leave".length));
     // Check for empty request
@@ -142,7 +145,7 @@ export class CourseSelectionController {
       .then(allCourses => {
         // Remove invalid courses and keep track of them to show the user.
         let invalidCourseNames: string[] = [];
-        allCourses.map((courses, coursesIndex) => {
+        allCourses = allCourses.map((courses, coursesIndex) => {
           return courses.filter((course, index) => {
             if (!course) {
               invalidCourseNames.push(`${Object.keys(numbers)[coursesIndex]}${Object.values(numbers)[coursesIndex][index]}`);
@@ -154,7 +157,7 @@ export class CourseSelectionController {
 
         // Merge courses
         const mergedCourses = _.flatten(allCourses);
-        const mergedCoursesNames = mergedCourses.map(course => `${course.major.prefix}-${course.number}`);
+        const mergedCoursesNames = mergedCourses.map(course => CourseUtils.convertToString(course));
 
         // Remove all courses from member.
         this.userService.removeCoursesFromMember(message.member, mergedCourses)
@@ -225,6 +228,13 @@ export class CourseSelectionController {
       reason: "Automatic scrubbing of course selection message to maintain privacy."
     })
       .catch(err => {
+        if(err.httpStatus) {
+          if(err.httpStatus === 404) {
+            // Message was deleted by someone else.
+            console.error("Could not scrub (delete) course selection message. It may have been deleted by someone else.");
+            return;
+          }
+        }
         console.error("Could not scrub (delete) course selection message. Please fix this, as it is a privacy concern.");
         console.error(err);
       });

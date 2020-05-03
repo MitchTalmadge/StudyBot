@@ -32,7 +32,6 @@
       }
     ],
     "lines-between-class-members": "warn",
-    "no-trailing-spaces": "warn",
     "object-curly-spacing": [
       "warn",
       "always"

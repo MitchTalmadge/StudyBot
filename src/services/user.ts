@@ -4,6 +4,7 @@ import { Course } from "src/models/course";
 import { GuildContext } from "src/guild-context";
 import _ from "lodash";
 import moment from "moment";
+import { RoleAssignmentService } from "./role-assignment";
 
 export class UserService {
   constructor(private guildContext: GuildContext) { }
@@ -42,7 +43,7 @@ export class UserService {
       user = await user.save();
     }
 
-    // TODO: Role service assignments
+    RoleAssignmentService.queueCourseRolesAddition(this.guildContext, discordMember, courses);
 
     return;
   }
@@ -69,7 +70,7 @@ export class UserService {
       user = await user.save();
     }
 
-    // TODO: Role service assignments
+    RoleAssignmentService.queueCourseRolesRemoval(this.guildContext, discordMember, courses);
 
     return;
   }

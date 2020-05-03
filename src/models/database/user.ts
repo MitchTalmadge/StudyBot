@@ -1,6 +1,5 @@
 // eslint-disable-next-line quotes
 import mongoose, { Document, Schema } from "mongoose";
-import { Course } from "../course";
 import { Moment } from "moment";
 import { VerificationStatus } from "../verification-status";
 

@@ -55,7 +55,11 @@ export class GuildContext {
     }
   }
 
-  private guildLog(message: string): void {
+  public guildLog(message: string): void {
     console.log(`[G: ${this.guild.name}] ${message}`);
+  }
+
+  public guildError(message: string): void {
+    console.error(`[G: ${this.guild.name}] ${message}`);
   }
 }
