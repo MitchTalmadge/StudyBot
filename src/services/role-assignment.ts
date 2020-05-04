@@ -47,8 +47,9 @@ export class RoleAssignmentService {
 
     let rolesToRemove: Discord.Role[] = [];
     for (let course of coursesToRemove) {
-      const role = await RoleService.getCourseRole(guildContext, course);
-      rolesToRemove.push(role);
+      const role = await RoleService.getCourseRoleIfExists(guildContext, course);
+      if (role)
+        rolesToRemove.push(role);
     }
     if (rolesToRemove.length > 0)
       discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot auto role removal");

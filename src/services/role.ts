@@ -6,6 +6,15 @@ import { GuildStorageService } from "./guild-storage";
 
 export class RoleService {
   public static async getCourseRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
+    const existingRole = await this.getCourseRoleIfExists(guildContext, course);
+    if (existingRole)
+      return existingRole;
+
+    const role = await this.createCourseRole(guildContext, course);
+    return role;
+  }
+
+  public static async getCourseRoleIfExists(guildContext: GuildContext, course: Course): Promise<Discord.Role | undefined> {
     const courseKey = CourseUtils.convertToString(course);
 
     const roles = await GuildStorageService.getRolesForMajor(guildContext, course.major);
@@ -21,8 +30,7 @@ export class RoleService {
       await GuildStorageService.removeRole(guildContext, course);
     }
 
-    const role = await this.createCourseRole(guildContext, course);
-    return role;
+    return undefined;
   }
 
   public static async getExistingRoleIdsForCourses(guildContext: GuildContext, courses: Course[]): Promise<string[]> {
