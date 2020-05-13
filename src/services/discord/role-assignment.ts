@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
 import { Course } from "src/models/course";
+import { CourseImplementDiscordService } from "./implement/course";
 import { GuildContext } from "src/guild-context";
-import { RoleService } from "./role";
 
-export class RoleAssignmentService {
+export class RoleAssignmentDiscordService {
   /**
    * Queues course role additions for a member.
    * @param guildContext The guild context.
@@ -36,22 +36,24 @@ export class RoleAssignmentService {
       });
   }
 
-  private static async assignCourseRoles(guildContext: GuildContext, discordMember: Discord.GuildMember, coursesToAdd: Course[], coursesToRemove: Course[]): Promise<void> {
-    let rolesToAdd: Discord.Role[] = [];
+  private static async assignCourseRoles(guildContext: GuildContext, discordMember: Discord.GuildMember, coursesToAdd: Course[], coursesToRemove: Course[]): Promise<void> {    
+    // Addition
+    let rolesToAdd: string[] = [];
     for (let course of coursesToAdd) {
-      const role = await RoleService.getCourseRole(guildContext, course);
-      rolesToAdd.push(role);
+      const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
+      rolesToAdd.push(courseImplement.mainRoleId);
     }
     if (rolesToAdd.length > 0)
-      discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot auto role assignment");
+      discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment");
 
-    let rolesToRemove: Discord.Role[] = [];
+    // Removal
+    let rolesToRemove: string[] = [];
     for (let course of coursesToRemove) {
-      const role = await RoleService.getCourseRoleIfExists(guildContext, course);
-      if (role)
-        rolesToRemove.push(role);
+      const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
+      if(courseImplement)
+        rolesToRemove.push(courseImplement.mainRoleId);
     }
     if (rolesToRemove.length > 0)
-      discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot auto role removal");
+      discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal");
   }
 }

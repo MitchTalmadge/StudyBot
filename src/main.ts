@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { ConfigService } from "./services/config";
-import { DatabaseService } from "./services/database";
+import { DatabaseService } from "./services/database/database";
 import { GuildContext } from "./guild-context";
 import { Major } from "./models/major";
 import { MajorMap } from "./models/major-map";

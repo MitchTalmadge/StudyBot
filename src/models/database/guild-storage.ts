@@ -1,27 +1,35 @@
 // eslint-disable-next-line quotes
 import mongoose, { Document, Schema } from "mongoose";
+import { IMajorImplementDiscord } from "../discord/implement/major";
 
 export interface IGuildStorage extends Document {
   guildId: string;
 
-  majors: Map<string, {
-    roles: Map<string, string>
-  }>
+  majorImplements: Map<string, IMajorImplementDiscord>
 }
 
 export const GuildStorageSchema = new Schema({
   guildId: { type: Schema.Types.String, required: true, unique: true },
 
-  majors: {
+  majorImplements: {
     type: Map,
     of: new Schema({
-      roles: { type: Map, of: Schema.Types.String, required: true, default: {} },
+      categoryId: { type: Schema.Types.String, required: true, unique: true },
+      courseImplements: { 
+        type: Map, 
+        of: new Schema({
+          mainRoleId: { type: Schema.Types.String, required: true, unique: true },
+          taRoleId: { type: Schema.Types.String, required: true, unique: true },
+          mainChannelId: { type: Schema.Types.String, required: true, unique: true },
+          voiceChannelId: { type: Schema.Types.String, required: true, unique: true }
+        }), 
+        required: true, 
+        default: {} 
+      },
     }),
     required: true,
     default: {}
-  },
-
-  jailed: { type: Schema.Types.Boolean, required: true, default: false }
+  }
 });
 
 GuildStorageSchema.post("init", (_doc) => {

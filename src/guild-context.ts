@@ -3,7 +3,7 @@ import { CourseSelectionController } from "./controllers/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
-import { UserService } from "./services/user";
+import { UserDatabaseService } from "./services/database/user";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 
 /**
@@ -13,7 +13,7 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 export class GuildContext {
   private courseService: CourseService;
 
-  private userService: UserService;
+  private userService: UserDatabaseService;
 
   private courseSelectionController: CourseSelectionController;
 
@@ -34,7 +34,7 @@ export class GuildContext {
     this.guildLog("Initializing course list...");
     this.courseService.updateCourseLists();
 
-    this.userService = new UserService(
+    this.userService = new UserDatabaseService(
       this
     );
   }

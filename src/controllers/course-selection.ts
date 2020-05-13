@@ -4,7 +4,7 @@ import { CourseService } from "src/services/course";
 import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
 import { Major } from "src/models/major";
-import { UserService } from "src/services/user";
+import { UserDatabaseService } from "src/services/database/user";
 import _ from "lodash";
 import { timer } from "rxjs";
 
@@ -14,7 +14,7 @@ export class CourseSelectionController {
   constructor(
     private guildContext: GuildContext,
     private courseService: CourseService,
-    private userService: UserService,
+    private userService: UserDatabaseService,
   ) { 
     // TODO: Delete all messages in channel on startup and write an instructions message.
   }
