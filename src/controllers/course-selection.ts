@@ -20,88 +20,113 @@ export class CourseSelectionController {
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.content.toLowerCase().startsWith("join")) {
-      this.joinOrLeaveCourses(message, "join");
+      this.joinOrLeaveCourses(message, "join")  
+        .then(result => {
+          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
+          if(result.invalidCourseNames.length > 0) {
+            this.sendTempReply(message, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+          } else {
+            this.sendTempReply(message, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
+          }
+        })
+        .catch(err => {
+          this.sendTempReply(message, err);
+          // TODO: Better example.
+          this.sendTempReply(message, "Example usage: join cs1410 phys2210");
+        });
     } else if (message.content.toLowerCase().startsWith("leave")) {
-      this.joinOrLeaveCourses(message, "leave");
+      this.joinOrLeaveCourses(message, "leave")  
+        .then(result => {
+          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
+          if(result.invalidCourseNames.length > 0) {
+            this.sendTempReply(message, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+          } else {
+            this.sendTempReply(message, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
+          }
+        })
+        .catch(err => {
+          this.sendTempReply(message, err);
+          // TODO: Better example.
+          this.sendTempReply(message, "Example usage: leave cs1410 phys2210");
+        });
+    } else if (message.content.toLowerCase().startsWith("ta")) {
+      this.joinOrLeaveCourses(message, "join")  
+        .then(result => {
+          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
+          // TODO: make a TA.
+          if(result.invalidCourseNames.length > 0) {
+            this.sendTempReply(message, `${message.author}, you are now a TA for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+          } else {
+            this.sendTempReply(message, `Success! ${message.author}, you are now a TA for the following courses: ${validCourseNames.join(", ")}.`); 
+          }
+        })
+        .catch(err => {
+          this.sendTempReply(message, err);
+          // TODO: Better example.
+          this.sendTempReply(message, "Example usage: ta cs1410 phys2210");
+        });
     } else {
-      // TODO: Create a partial request and ask the user what they meant?
-      this.sendTempReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join' or 'leave'. For example: 'join cs1410 phys2420'`);
+      this.sendTempReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
     }
 
     this.scrubMessage(message, 20_000);
   }
 
-  private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): void {
-    const numbers = CourseUtils.parseCourseNumberList(message.content.substring(action.length));
+  private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
+    const numbers = CourseUtils.parseCourseNumberList(message.content.substring(message.content.indexOf(" ") + 1));
     // Check for empty request
     if (Object.keys(numbers).length === 0) {
-      // TODO: Example based on majors
-      this.sendTempReply(message, `${message.author}, I didn't see any course numbers in your request! Here's an example: '${action} cs1410 phys2420'`);
-      return;
+      return Promise.reject(`${message.author}, I didn't see any course numbers in your request!`);
     }
 
     // Fix ambiguity
     if (!this.disambiguateNumbers(numbers)) {
-      // TODO: Example based on majors
-      this.sendTempReply(message, `${message.author}, please specify major prefixes for each of your courses. For example: '${action} cs1410 phys2420'`);
-      return;
+      return Promise.reject(`${message.author}, please specify major prefixes for each of your courses.`);
     }
 
     // Check for non-existent majors
     const invalidMajors = this.getInvalidMajors(Object.keys(numbers));
     if (invalidMajors.length > 0) {
-      this.sendTempReply(message, `Sorry ${message.author}, the major(s) '${invalidMajors.join(", ")}' are not valid in this server. The valid majors are: ${Object.keys(this.guildContext.majors).join(", ")}`);
-      return;
+      return Promise.reject(`Sorry ${message.author}, the major(s) '${invalidMajors.join(", ")}' are not valid in this server. The valid majors are: ${Object.keys(this.guildContext.majors).join(", ")}`);
     }
 
     // Convert numbers to courses
-    this.courseService.getCoursesFromNumberListsByMajor(numbers)
+    return this.courseService.getCoursesFromNumberListsByMajor(numbers)
+      .catch(err => {
+        console.error(`Failed to parse courses from ${action} request.`);
+        console.error(err);
+        return Promise.reject(`${message.author}, sorry, something went wrong while I was trying to read your message. Try again or ask an admin for help!`);
+      })
       .then(result => {
         // Remove invalid courses and keep track of them to show the user.
         const allValidCourses: Course[] = [];
-        const allValidCourseNames: string[] = [];
         const allInvalidCourseNames: string[] = [];
         _.keys(result).forEach(major => {
           const courses = result[major];
           allValidCourses.push(...courses.validCourses);
-          allValidCourseNames.push(...courses.validCourses.map(c => CourseUtils.convertToString(c)));
-          allInvalidCourseNames.push(...courses.invalidCourses);
+          allInvalidCourseNames.push(...courses.invalidCourseNames);
         });
 
         // Add all courses to member.
-        Promise.resolve()
+        return Promise.resolve()
           .then(() => {
             if(action == "join")
               return UserDatabaseService.addCoursesToMember(this.guildContext, message.member, allValidCourses);
             else
               return UserDatabaseService.removeCoursesFromMember(this.guildContext, message.member, allValidCourses);
           })
-          .then(() => {
-            if (allValidCourses.length === 0) {
-              this.sendTempReply(message,
-                `Sorry ${message.author}, none of the courses you specified appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`
-              );
-            } else if (allInvalidCourseNames.length > 0) {
-              this.sendTempReply(message,
-                `${message.author}, I have ${action === "join" ? "added you to" : "removed you from"} the following courses: ${allValidCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`
-              );
-            } else {
-              this.sendTempReply(message, `Success! ${message.author}, I have ${action === "join" ? "added you to" : "removed you from"} the following courses: ${allValidCourseNames.join(", ")}`);
-            }
-          })
           .catch(err => {
             console.error(`Failed to set courses for member during ${action} request.`);
             console.error(err);
-            this.sendTempReply(message, `Sorry ${message.author}, something internal went wrong when I tried to assign your courses. Try again, and if it still doesn't work then ask an admin for help!`);
-          });
-      })
-      .catch(err => {
-        console.error(`Failed to parse courses from ${action} request.`);
-        console.error(err);
-        this.sendTempReply(message,
-          `${message.author}, sorry, something went wrong while I was trying to read your message. Try again or ask an admin for help! Here's an example: '${action} cs1410 phys2420'`
-          // TODO: better example
-        );
+            return Promise.reject(`Sorry ${message.author}, something internal went wrong when I tried to assign your courses. Try again or ask an admin for help!`);
+          })
+          .then(() => {
+            if (allValidCourses.length === 0) {
+              return Promise.reject(`Sorry ${message.author}, none of the courses you specified appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`);
+            }
+
+            return { validCourses: allValidCourses, invalidCourseNames: allInvalidCourseNames };
+          });          
       });
   }
 
