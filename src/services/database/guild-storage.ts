@@ -31,7 +31,12 @@ export class GuildStorageDatabaseService {
 
   public static async setMajorImplement(guildContext: GuildContext, major: Major, implement: IMajorImplementDiscord): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
-    storage.majorImplements.set(major.prefix, implement);
+
+    if(implement)
+      storage.majorImplements.set(major.prefix, implement);
+    else
+      storage.majorImplements.delete(major.prefix);
+      
     await storage.save();
   }
 

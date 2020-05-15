@@ -24,24 +24,6 @@ export class CourseImplementDiscordService {
     return undefined;
   }
 
-  public static async deleteCourseImplementIfEmpty(guildContext: GuildContext, course: Course): Promise<void> {
-    const implement = await this.getCourseImplementIfExists(guildContext, course);
-    if(!implement) {
-      return;
-    }
-
-    if((await UserDatabaseService.getUsersByCourse(guildContext, course)).length > 0) {
-      return;
-    }
-
-    await guildContext.guild.channels.resolve(implement.mainChannelId).delete();
-    await guildContext.guild.channels.resolve(implement.voiceChannelId).delete();
-    await guildContext.guild.roles.resolve(implement.mainRoleId).delete();
-    await guildContext.guild.roles.resolve(implement.taRoleId).delete();
-
-    await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
-  }
-
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
     const majorImplement = await MajorImplementDiscordService.getOrCreateMajorImplement(guildContext, course.major);
     
@@ -59,6 +41,25 @@ export class CourseImplementDiscordService {
 
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
     return implement;
+  }
+
+  public static async deleteCourseImplementIfEmpty(guildContext: GuildContext, course: Course): Promise<void> {
+    const implement = await this.getCourseImplementIfExists(guildContext, course);
+    if(!implement) {
+      return;
+    }
+
+    if((await UserDatabaseService.getUsersByCourse(guildContext, course)).length > 0) {
+      return;
+    }
+
+    await guildContext.guild.channels.resolve(implement.mainChannelId).delete();
+    await guildContext.guild.channels.resolve(implement.voiceChannelId).delete();
+    await guildContext.guild.roles.resolve(implement.mainRoleId).delete();
+    await guildContext.guild.roles.resolve(implement.taRoleId).delete();
+
+    await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
+    await MajorImplementDiscordService.deleteMajorImplementIfEmpty(guildContext, course.major);
   }
 
   // TODO: Repair implement
