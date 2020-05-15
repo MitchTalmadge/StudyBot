@@ -5,6 +5,7 @@ import { GuildContext } from "src/guild-context";
 import { GuildStorageDatabaseService } from "src/services/database/guild-storage";
 import { ICourseImplementDiscord } from "src/models/discord/implement/course";
 import { MajorImplementDiscordService } from "../major";
+import { UserDatabaseService } from "src/services/database/user";
 
 export class CourseImplementDiscordService {
   public static async getOrCreateCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
@@ -21,6 +22,24 @@ export class CourseImplementDiscordService {
       return implement;
     }
     return undefined;
+  }
+
+  public static async deleteCourseImplementIfEmpty(guildContext: GuildContext, course: Course): Promise<void> {
+    const implement = await this.getCourseImplementIfExists(guildContext, course);
+    if(!implement) {
+      return;
+    }
+
+    if((await UserDatabaseService.getUsersByCourse(guildContext, course)).length > 0) {
+      return;
+    }
+
+    await guildContext.guild.channels.resolve(implement.mainChannelId).delete();
+    await guildContext.guild.channels.resolve(implement.voiceChannelId).delete();
+    await guildContext.guild.roles.resolve(implement.mainRoleId).delete();
+    await guildContext.guild.roles.resolve(implement.taRoleId).delete();
+
+    await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
   }
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {

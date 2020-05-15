@@ -53,7 +53,13 @@ export class RoleAssignmentDiscordService {
       if(courseImplement)
         rolesToRemove.push(courseImplement.mainRoleId);
     }
-    if (rolesToRemove.length > 0)
+    if (rolesToRemove.length > 0) {
       discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal");
+
+      // Check if nobody is in the course anymore.
+      for(let course of coursesToRemove) {
+        await CourseImplementDiscordService.deleteCourseImplementIfEmpty(guildContext, course);
+      }
+    }
   }
 }

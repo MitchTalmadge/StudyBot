@@ -9,10 +9,7 @@ export interface IUser extends Document {
   verificationStatus: VerificationStatus;
 
   guilds: Map<string, {
-    courses: {
-      majorPrefix: string,
-      number: string
-    }[];
+    courses: string[];
     coursesLastUpdated: Moment;
   }>
 
@@ -28,12 +25,7 @@ export const UserSchema = new Schema({
     type: Map,
     of: new Schema({
       courses: {
-        type: [
-          new Schema({
-            majorPrefix: { type: Schema.Types.String, required: true },
-            number: { type: Schema.Types.String, required: true }
-          })
-        ], required: true, default: []
+        type: [String], required: true, default: []
       },
       coursesLastUpdated: { type: Schema.Types.Date, required: true, default: Date.now() }
     }),

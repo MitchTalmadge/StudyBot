@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { IUser, User } from "src/models/database/user";
 import { Course } from "src/models/course";
+import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
 import { RoleAssignmentDiscordService } from "../discord/role-assignment";
 import _ from "lodash";
@@ -24,12 +25,7 @@ export class UserDatabaseService {
   public async addCoursesToMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
-    const serializedCourses = courses.map(course => {
-      return {
-        majorPrefix: course.major.prefix,
-        number: course.number
-      };
-    });
+    const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
 
     let guildData = user.guilds.get(this.guildContext.guild.id);
     if (!guildData) {
@@ -39,7 +35,7 @@ export class UserDatabaseService {
       });
       user = await user.save();
     } else {
-      guildData.courses = _.unionBy(guildData.courses, serializedCourses, course => `${course.majorPrefix}-${course.number}`);
+      guildData.courses = _.union(guildData.courses, serializedCourses);
       user = await user.save();
     }
 
@@ -51,12 +47,7 @@ export class UserDatabaseService {
   public async removeCoursesFromMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
-    const serializedCourses = courses.map(course => {
-      return {
-        majorPrefix: course.major.prefix,
-        number: course.number
-      };
-    });
+    const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
 
     let guildData = user.guilds.get(this.guildContext.guild.id);
     if (!guildData) {
@@ -66,12 +57,19 @@ export class UserDatabaseService {
       });
       user = await user.save();
     } else {
-      guildData.courses = _.differenceBy(guildData.courses, serializedCourses, course => `${course.majorPrefix}-${course.number}`);
+      guildData.courses = _.difference(guildData.courses, serializedCourses);
       user = await user.save();
     }
 
     RoleAssignmentDiscordService.queueCourseRolesRemoval(this.guildContext, discordMember, courses);
 
     return;
+  }
+
+  public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
+    const key = `guilds.${guildContext.guild.id}.courses`;
+    const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();
+    
+    return users;
   }
 }
