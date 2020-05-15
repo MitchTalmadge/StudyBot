@@ -4,7 +4,7 @@ import { IWebCatalogService } from "./web-catalog/web-catalog";
 import { Major } from "src/models/major";
 import { ReplaySubject } from "rxjs";
 import _ from "lodash";
-import { first } from "rxjs/operators";
+import { first, map } from "rxjs/operators";
 
 export class CourseService {
   /**
@@ -83,12 +83,40 @@ export class CourseService {
    * @param major The major to look through.
    * @returns For each number: the course found if valid, or undefined if not.
    */
-  public async getCoursesFromNumberList(list: string[], major: Major): Promise<Course[]> {
+  public getCoursesFromNumberList(list: string[], major: Major): Promise<{validCourses: Course[], invalidCourses: string[]}> {
     let promises: Promise<Course>[] = [];
     list.forEach(num => {
       promises.push(this.getCourseFromNumber(num, major));
     });
 
-    return Promise.all(promises);
+    return Promise.all(promises)
+      .then(courses => {
+        const mapping: {validCourses: Course[], invalidCourses: string[]} = {validCourses: [], invalidCourses: []};
+        courses.forEach((course, index) => {
+          if(course)
+            mapping.validCourses.push(course);
+          else
+            mapping.invalidCourses.push(list[index]);
+        }); 
+
+        return mapping;
+      });
+  }
+
+  public getCoursesFromNumberListsByMajor(numbersByMajor: {[majorPrefix: string]: string[]}): Promise<{[majorPrefix: string]: {validCourses: Course[], invalidCourses: string[]}}> {
+    const courseResolverPromises: Promise<{validCourses: Course[], invalidCourses: string[]}>[] = [];
+    _.forIn(numbersByMajor, (courseNumbers, majorPrefix) => {
+      courseResolverPromises.push(this.getCoursesFromNumberList(courseNumbers, this.guildContext.majors[majorPrefix]));
+    });
+
+    return Promise.all(courseResolverPromises)
+      .then(allCourses => {
+        const mapping: {[majorPrefix: string]: {validCourses: Course[], invalidCourses: string[]}} = {};
+        allCourses.forEach((courses, index) => {
+          mapping[Object.keys(numbersByMajor)[index]] = courses;
+        });
+
+        return mapping;
+      });
   }
 }
