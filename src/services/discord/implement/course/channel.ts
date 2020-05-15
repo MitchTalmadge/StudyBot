@@ -4,9 +4,9 @@ import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
 
 export class CourseChannelImplementDiscordService {
-  public static async createMainCourseChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.TextChannel> {
+  public static async createMainChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.TextChannel> {
     const channel = await guildContext.guild.channels.create(
-      CourseUtils.convertToString(course),
+      CourseUtils.getMainChannelName(course),
       {
         type: "text",
         topic: `:information_source: ${course.title}`,
@@ -36,9 +36,9 @@ export class CourseChannelImplementDiscordService {
     return channel;
   }
 
-  public static async createVoiceCourseChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.VoiceChannel> {
+  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.VoiceChannel> {
     const channel = await guildContext.guild.channels.create(
-      `${CourseUtils.convertToString(course)}-voice`,
+      CourseUtils.getVoiceChannelName(course),
       {
         type: "voice",
         parent: categoryId,

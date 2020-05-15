@@ -1,5 +1,4 @@
 import { Course } from "src/models/course";
-import { MajorMap } from "src/models/major-map";
 
 export class CourseUtils {
   public static parseCourseNumberList(list: string): { [majorPrefix: string]: string[] } {
@@ -26,12 +25,24 @@ export class CourseUtils {
     return result;
   }
 
-  /**
-   * Converts a Course instance to a string representation.
-   * @param course 
-   */
   public static convertToString(course: Course): string {
     return `${course.major.prefix}-${course.number}`;
   }
+
+  public static getMainRoleName(course: Course): string {
+    return this.convertToString(course);
+  }
+
+  public static getTARoleName(course: Course): string {
+    return `${this.convertToString(course)}-ta`;
+  }
+
+  public static getMainChannelName(course: Course): string {
+    return this.convertToString(course);
+  }
+
+  public static getVoiceChannelName(course: Course): string {
+    return `${this.convertToString(course)}-voice`;
+  }  
 
 }

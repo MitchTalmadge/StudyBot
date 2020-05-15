@@ -4,10 +4,10 @@ import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
 
 export class CourseRoleImplementDiscordService {
-  public static async createMainCourseRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
+  public static async createMainRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {
-        name: CourseUtils.convertToString(course),
+        name: CourseUtils.getMainRoleName(course),
         hoist: false,
         color: 0,
         mentionable: true,
@@ -18,10 +18,10 @@ export class CourseRoleImplementDiscordService {
     return role;
   }
 
-  public static async createTACourseRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
+  public static async createTARole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {
-        name: `${CourseUtils.convertToString(course)}-ta`,
+        name: CourseUtils.getTARoleName(course),
         hoist: true,
         color: "GREEN",
         mentionable: true,

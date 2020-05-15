@@ -1,11 +1,12 @@
 import * as Discord from "discord.js";
 import { GuildContext } from "src/guild-context";
 import { Major } from "src/models/major";
+import { MajorUtils } from "src/utils/major";
 
 export class MajorCategoryImplementDiscordService {
   public static async createTextCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
     const category = await guildContext.guild.channels.create(
-      `${major.prefix}-chat`,
+      MajorUtils.getTextCategoryName(major),
       {
         type: "category",
         permissionOverwrites: [
@@ -24,7 +25,7 @@ export class MajorCategoryImplementDiscordService {
 
   public static async createVoiceCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
     const category = await guildContext.guild.channels.create(
-      `${major.prefix}-voice`,
+      MajorUtils.getVoiceCategoryName(major),
       {
         type: "category",
         permissionOverwrites: [
