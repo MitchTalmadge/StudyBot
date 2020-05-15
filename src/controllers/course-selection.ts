@@ -28,7 +28,7 @@ export class CourseSelectionController {
       this.sendTempReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join' or 'leave'. For example: 'join cs1410 phys2420'`);
     }
 
-    this.scrubMessage(message);
+    this.scrubMessage(message, 20_000);
   }
 
   private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): void {
@@ -144,9 +144,7 @@ export class CourseSelectionController {
   private sendTempReply(message: Discord.Message | Discord.PartialMessage, reply: string): void {
     message.channel.send(reply)
       .then(sentMessage => {
-        timer(20_000).subscribe(() => {
-          this.scrubMessage(sentMessage);
-        });
+        this.scrubMessage(sentMessage, 20_000);
       })
       .catch(err => {
         console.error("Could not send course selection reply message.");
@@ -154,20 +152,22 @@ export class CourseSelectionController {
       });
   }
 
-  private scrubMessage(message: Discord.Message | Discord.PartialMessage) {
-    message.delete({
-      reason: "Automatic scrubbing of course selection message to maintain privacy."
-    })
-      .catch(err => {
-        if(err.httpStatus) {
-          if(err.httpStatus === 404) {
-            // Message was deleted by someone else.
-            console.error("Could not scrub (delete) course selection message. It may have been deleted by someone else.");
-            return;
+  private scrubMessage(message: Discord.Message | Discord.PartialMessage, delay: number): void {
+    timer(delay).subscribe(() => {
+      message.delete({
+        reason: "Automatic scrubbing of course selection message to maintain privacy."
+      })
+        .catch(err => {
+          if(err.httpStatus) {
+            if(err.httpStatus === 404) {
+              // Message was deleted by someone else.
+              console.error("Could not scrub (delete) course selection message. It may have been deleted by someone else.");
+              return;
+            }
           }
-        }
-        console.error("Could not scrub (delete) course selection message. Please fix this, as it is a privacy concern.");
-        console.error(err);
-      });
+          console.error("Could not scrub (delete) course selection message. Please fix this, as it is a privacy concern.");
+          console.error(err);
+        });
+    });
   }
 }
