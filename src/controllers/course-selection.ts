@@ -20,23 +20,15 @@ export class CourseSelectionController {
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.content.toLowerCase().startsWith("join")) {
-      this.onJoinRequest(message);
+      this.joinOrLeaveCourses(message, "join");
     } else if (message.content.toLowerCase().startsWith("leave")) {
-      this.onLeaveRequest(message);
+      this.joinOrLeaveCourses(message, "leave");
     } else {
       // TODO: Create a partial request and ask the user what they meant?
       this.sendTempReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join' or 'leave'. For example: 'join cs1410 phys2420'`);
     }
 
     this.scrubMessage(message);
-  }
-
-  private onJoinRequest(message: Discord.Message | Discord.PartialMessage) {
-    this.joinOrLeaveCourses(message, "join");
-  }
-
-  private onLeaveRequest(message: Discord.Message | Discord.PartialMessage) {
-    this.joinOrLeaveCourses(message, "leave");
   }
 
   private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): void {
