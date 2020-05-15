@@ -152,7 +152,7 @@ export class CourseSelectionController {
   private sendTempReply(message: Discord.Message | Discord.PartialMessage, reply: string): void {
     message.channel.send(reply)
       .then(sentMessage => {
-        timer(30_000).subscribe(() => {
+        timer(20_000).subscribe(() => {
           this.scrubMessage(sentMessage);
         });
       })
