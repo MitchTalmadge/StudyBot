@@ -56,7 +56,6 @@ class StudyBot {
       });
 
       this.guildContexts[guild.id] = new GuildContext(
-        this.client,
         guild,
         guildConfig,
         majors

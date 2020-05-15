@@ -8,9 +8,7 @@ import _ from "lodash";
 import moment from "moment";
 
 export class UserDatabaseService {
-  constructor(private guildContext: GuildContext) { }
-
-  private async findOrCreateUser(discordUser: Discord.User): Promise<IUser> {
+  private static async findOrCreateUser(discordUser: Discord.User): Promise<IUser> {
     let user = await User.findOne({ discordUserId: discordUser.id }).exec();
     if (!user) {
       user = await new User(
@@ -22,14 +20,14 @@ export class UserDatabaseService {
     return user;
   }
 
-  public async addCoursesToMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
+  public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
     const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
 
-    let guildData = user.guilds.get(this.guildContext.guild.id);
+    let guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
-      user.guilds.set(this.guildContext.guild.id, {
+      user.guilds.set(guildContext.guild.id, {
         courses: serializedCourses,
         coursesLastUpdated: moment()
       });
@@ -39,19 +37,19 @@ export class UserDatabaseService {
       user = await user.save();
     }
 
-    RoleAssignmentDiscordService.queueCourseRolesAddition(this.guildContext, discordMember, courses);
+    RoleAssignmentDiscordService.queueCourseRolesAddition(guildContext, discordMember, courses);
 
     return;
   }
 
-  public async removeCoursesFromMember(discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
+  public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
     const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
 
-    let guildData = user.guilds.get(this.guildContext.guild.id);
+    let guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
-      user.guilds.set(this.guildContext.guild.id, {
+      user.guilds.set(guildContext.guild.id, {
         courses: [],
         coursesLastUpdated: moment()
       });
@@ -61,7 +59,7 @@ export class UserDatabaseService {
       user = await user.save();
     }
 
-    RoleAssignmentDiscordService.queueCourseRolesRemoval(this.guildContext, discordMember, courses);
+    RoleAssignmentDiscordService.queueCourseRolesRemoval(guildContext, discordMember, courses);
 
     return;
   }

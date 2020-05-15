@@ -13,12 +13,9 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 export class GuildContext {
   private courseService: CourseService;
 
-  private userService: UserDatabaseService;
-
   private courseSelectionController: CourseSelectionController;
 
   constructor(
-    private client: Discord.Client,
     public guild: Discord.Guild,
     private guildConfig: GuildConfig,
     public majors: MajorMap) {
@@ -33,17 +30,12 @@ export class GuildContext {
     );
     this.guildLog("Initializing course list...");
     this.courseService.updateCourseLists();
-
-    this.userService = new UserDatabaseService(
-      this
-    );
   }
 
   private initControllers(): void {
     this.courseSelectionController = new CourseSelectionController(
       this,
-      this.courseService,
-      this.userService
+      this.courseService
     );
   }
 

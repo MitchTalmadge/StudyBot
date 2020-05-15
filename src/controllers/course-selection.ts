@@ -4,17 +4,16 @@ import { CourseService } from "src/services/course";
 import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
 import { Major } from "src/models/major";
-import { UserDatabaseService } from "src/services/database/user";
 import _ from "lodash";
 import { timer } from "rxjs";
+import { UserDatabaseService } from "src/services/database/user";
 
 export class CourseSelectionController {
   public static readonly CHANNEL_NAME = "course-selector";
 
   constructor(
     private guildContext: GuildContext,
-    private courseService: CourseService,
-    private userService: UserDatabaseService,
+    private courseService: CourseService
   ) { 
     // TODO: Delete all messages in channel on startup and write an instructions message.
   }
@@ -83,7 +82,7 @@ export class CourseSelectionController {
         const mergedCoursesNames = mergedCourses.map(course => CourseUtils.convertToString(course));
 
         // Add all courses to member.
-        this.userService.addCoursesToMember(message.member, mergedCourses)
+        UserDatabaseService.addCoursesToMember(this.guildContext, message.member, mergedCourses)
           .then(() => {
             if (invalidCourseNames.length > 0) {
               // TODO: Handle case where mergedCourseNames len == 0 (all invalid)
@@ -161,7 +160,7 @@ export class CourseSelectionController {
         const mergedCoursesNames = mergedCourses.map(course => CourseUtils.convertToString(course));
 
         // Remove all courses from member.
-        this.userService.removeCoursesFromMember(message.member, mergedCourses)
+        UserDatabaseService.removeCoursesFromMember(this.guildContext, message.member, mergedCourses)
           .then(() => {
             if (invalidCourseNames.length > 0) {
               this.sendTempReply(message,
