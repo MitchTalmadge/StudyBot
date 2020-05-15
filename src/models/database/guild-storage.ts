@@ -14,7 +14,8 @@ export const GuildStorageSchema = new Schema({
   majorImplements: {
     type: Map,
     of: new Schema({
-      categoryId: { type: Schema.Types.String, required: true, unique: true },
+      textCategoryId: { type: Schema.Types.String, required: true, unique: true },
+      voiceCategoryId: { type: Schema.Types.String, required: true, unique: true },
       courseImplements: { 
         type: Map, 
         of: new Schema({

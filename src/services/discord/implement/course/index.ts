@@ -28,8 +28,8 @@ export class CourseImplementDiscordService {
     
     const mainRoleId = (await CourseRoleImplementDiscordService.createMainCourseRole(guildContext, course)).id;
     const taRoleId = (await CourseRoleImplementDiscordService.createTACourseRole(guildContext, course)).id;
-    const mainChannelId = (await CourseChannelImplementDiscordService.createMainCourseChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId)).id;
-    const voiceChannelId = (await CourseChannelImplementDiscordService.createVoiceCourseChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId)).id;
+    const mainChannelId = (await CourseChannelImplementDiscordService.createMainCourseChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId)).id;
+    const voiceChannelId = (await CourseChannelImplementDiscordService.createVoiceCourseChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId)).id;
 
     const implement = {
       mainRoleId,

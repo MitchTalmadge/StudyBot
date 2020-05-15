@@ -9,7 +9,7 @@ export class CourseChannelImplementDiscordService {
       CourseUtils.convertToString(course),
       {
         type: "text",
-        topic: course.title,
+        topic: `:information_source: ${course.title}`,
         parent: categoryId,
         position: 1,
         permissionOverwrites: [

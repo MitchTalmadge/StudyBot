@@ -86,6 +86,7 @@ export class CourseSelectionController {
         this.userService.addCoursesToMember(message.member, mergedCourses)
           .then(() => {
             if (invalidCourseNames.length > 0) {
+              // TODO: Handle case where mergedCourseNames len == 0 (all invalid)
               this.sendTempReply(message,
                 `${message.author}, I have added you to the following courses: ${mergedCoursesNames.join(", ")}. However, the following courses do not appear to be valid: ${invalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`
               );

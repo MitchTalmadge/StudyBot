@@ -15,10 +15,12 @@ export class MajorImplementDiscordService {
   }
 
   private static async createMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplementDiscord> {
-    const categoryId = (await MajorCategoryImplementDiscordService.createMajorCategory(guildContext, major)).id;
+    const textCategoryId = (await MajorCategoryImplementDiscordService.createTextCategory(guildContext, major)).id;
+    const voiceCategoryId = (await MajorCategoryImplementDiscordService.createVoiceCategory(guildContext, major)).id;
     
     const implement: IMajorImplementDiscord = {
-      categoryId,
+      textCategoryId,
+      voiceCategoryId,
       courseImplements: new Map<string, ICourseImplementDiscord>()
     };
 

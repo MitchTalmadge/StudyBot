@@ -2,9 +2,9 @@ import * as Discord from "discord.js";
 import { IUser, User } from "src/models/database/user";
 import { Course } from "src/models/course";
 import { GuildContext } from "src/guild-context";
+import { RoleAssignmentDiscordService } from "../discord/role-assignment";
 import _ from "lodash";
 import moment from "moment";
-import { RoleAssignmentDiscordService } from "../discord/role-assignment";
 
 export class UserDatabaseService {
   constructor(private guildContext: GuildContext) { }

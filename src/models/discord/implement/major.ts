@@ -1,6 +1,7 @@
 import { ICourseImplementDiscord } from "./course";
 
 export interface IMajorImplementDiscord {
-  categoryId: string;
+  textCategoryId: string;
+  voiceCategoryId: string;
   courseImplements: Map<string, ICourseImplementDiscord>
 }
