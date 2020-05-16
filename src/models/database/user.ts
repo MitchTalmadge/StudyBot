@@ -9,11 +9,16 @@ export interface IUser extends Document {
   verificationStatus: VerificationStatus;
 
   guilds: Map<string, {
-    courses: string[];
+    courses: IUserCourseAssignment[];
     coursesLastUpdated: Moment;
   }>
 
   jailed: boolean;
+}
+
+export interface IUserCourseAssignment {
+  courseKey: string,
+  isTA: boolean
 }
 
 export const UserSchema = new Schema({
@@ -25,7 +30,12 @@ export const UserSchema = new Schema({
     type: Map,
     of: new Schema({
       courses: {
-        type: [String], required: true, default: []
+        type: [
+          new Schema({
+            courseKey: { type: Schema.Types.String, required: true },
+            isTA: { type: Schema.Types.Boolean, required: true, default: false }
+          })
+        ], required: true, default: []
       },
       coursesLastUpdated: { type: Schema.Types.Date, required: true, default: Date.now() }
     }),

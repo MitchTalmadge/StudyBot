@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { IUser, User } from "src/models/database/user";
+import { IUser, User, IUserCourseAssignment } from "src/models/database/user";
 import { Course } from "src/models/course";
 import { CourseUtils } from "src/utils/course";
 import { GuildContext } from "src/guild-context";
@@ -23,7 +23,12 @@ export class UserDatabaseService {
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
-    const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
+    const serializedCourses: IUserCourseAssignment[] =
+      courses.map(course =>
+        <IUserCourseAssignment>{
+          courseKey: CourseUtils.convertToString(course),
+          isTA: false
+        });
 
     let guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
@@ -45,7 +50,7 @@ export class UserDatabaseService {
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     let user = await this.findOrCreateUser(discordMember.user);
 
-    const serializedCourses = courses.map(course => CourseUtils.convertToString(course));
+    const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
     let guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
@@ -55,7 +60,7 @@ export class UserDatabaseService {
       });
       user = await user.save();
     } else {
-      guildData.courses = _.difference(guildData.courses, serializedCourses);
+      guildData.courses = _.differenceWith(guildData.courses, courseKeys, ((course, key) => course.courseKey === key));
       user = await user.save();
     }
 
@@ -67,7 +72,7 @@ export class UserDatabaseService {
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
     const key = `guilds.${guildContext.guild.id}.courses`;
     const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();
-    
+
     return users;
   }
 }
