@@ -60,7 +60,7 @@ export class UserDatabaseService {
       });
       user = await user.save();
     } else {
-      guildData.courses = _.differenceWith(guildData.courses, courseKeys, ((course, key) => course.courseKey === key));
+      guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey))
       user = await user.save();
     }
 
@@ -70,7 +70,7 @@ export class UserDatabaseService {
   }
 
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
-    const key = `guilds.${guildContext.guild.id}.courses`;
+    const key = `guilds.${guildContext.guild.id}.courses.courseKey`;
     const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();
 
     return users;
