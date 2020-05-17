@@ -21,7 +21,7 @@ export class UserDatabaseService {
   }
 
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    let user = await this.findOrCreateUser(discordMember.user);
+    const user = await this.findOrCreateUser(discordMember.user);
 
     const serializedCourses: IUserCourseAssignment[] =
       courses.map(course =>
@@ -30,43 +30,62 @@ export class UserDatabaseService {
           isTA: false
         });
 
-    let guildData = user.guilds.get(guildContext.guild.id);
+    const guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
       user.guilds.set(guildContext.guild.id, {
         courses: serializedCourses,
         coursesLastUpdated: moment()
       });
-      user = await user.save();
+      await user.save();
     } else {
       guildData.courses = _.union(guildData.courses, serializedCourses);
-      user = await user.save();
+      await user.save();
     }
 
-    RoleAssignmentDiscordService.queueCourseRolesAddition(guildContext, discordMember, courses);
-
-    return;
+    return RoleAssignmentDiscordService.queueCourseRolesAddition(guildContext, discordMember, courses);
   }
 
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    let user = await this.findOrCreateUser(discordMember.user);
+    const user = await this.findOrCreateUser(discordMember.user);
 
     const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
-    let guildData = user.guilds.get(guildContext.guild.id);
+    const guildData = user.guilds.get(guildContext.guild.id);
     if (!guildData) {
       user.guilds.set(guildContext.guild.id, {
         courses: [],
         coursesLastUpdated: moment()
       });
-      user = await user.save();
+      await user.save();
     } else {
       guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey))
-      user = await user.save();
+      await user.save();
     }
 
-    RoleAssignmentDiscordService.queueCourseRolesRemoval(guildContext, discordMember, courses);
+    return RoleAssignmentDiscordService.queueCourseRolesRemoval(guildContext, discordMember, courses);
+  }
 
-    return;
+  public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
+    const user = await this.findOrCreateUser(discordMember.user);
+    
+    const courseKeys = courses.map(course => CourseUtils.convertToString(course));
+
+    const guildData = user.guilds.get(guildContext.guild.id);
+    const taCourses: Course[] = [];
+    const nonTACourses: Course[] = [];
+    const selectedCourses = guildData.courses.filter(course => courseKeys.includes(course.courseKey));
+    selectedCourses.forEach(course => {
+      course.isTA = !course.isTA;
+      if(course.isTA) {
+        taCourses.push(courses[courseKeys.findIndex(c => c === course.courseKey)]);
+      } else {
+        nonTACourses.push(courses[courseKeys.findIndex(c => c === course.courseKey)]);
+      }
+    });
+
+    await user.save();
+
+    RoleAssignmentDiscordService.queueTARoleAssignments(guildContext, discordMember, taCourses, nonTACourses);
   }
 
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {

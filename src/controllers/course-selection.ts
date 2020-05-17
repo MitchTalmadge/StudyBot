@@ -6,7 +6,6 @@ import { GuildContext } from "src/guild-context";
 import { Major } from "src/models/major";
 import { UserDatabaseService } from "src/services/database/user";
 import _ from "lodash";
-import { timer } from "rxjs";
 
 export class CourseSelectionController {
   public static readonly CHANNEL_NAME = "course-selector";
@@ -20,56 +19,59 @@ export class CourseSelectionController {
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.content.toLowerCase().startsWith("join")) {
+      this.sendReply(message, "Processing, please wait...");
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendTempReply(message, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            this.sendReply(message, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendTempReply(message, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
+            this.sendReply(message, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(err => {
-          this.sendTempReply(message, err);
+          this.sendReply(message, err);
           // TODO: Better example.
-          this.sendTempReply(message, "Example usage: join cs1410 phys2210");
+          this.sendReply(message, "Example usage: join cs1410 phys2210");
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
+      this.sendReply(message, "Processing, please wait...");
       this.joinOrLeaveCourses(message, "leave")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendTempReply(message, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            this.sendReply(message, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendTempReply(message, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
+            this.sendReply(message, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(err => {
-          this.sendTempReply(message, err);
+          this.sendReply(message, err);
           // TODO: Better example.
-          this.sendTempReply(message, "Example usage: leave cs1410 phys2210");
+          this.sendReply(message, "Example usage: leave cs1410 phys2210");
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
+      // Join the courses just in case (also takes care of validation).
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
-          // TODO: make a TA.
-          if(result.invalidCourseNames.length > 0) {
-            this.sendTempReply(message, `${message.author}, you are now a TA for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
-          } else {
-            this.sendTempReply(message, `Success! ${message.author}, you are now a TA for the following courses: ${validCourseNames.join(", ")}.`); 
-          }
+          return UserDatabaseService.toggleTAStatusForMember(this.guildContext, message.member, result.validCourses)
+            .then(() => {
+              if(result.invalidCourseNames.length > 0) {
+                this.sendReply(message, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+              } else {
+                this.sendReply(message, `Success! ${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}.`); 
+              }
+            });
         })
         .catch(err => {
-          this.sendTempReply(message, err);
+          this.sendReply(message, err);
           // TODO: Better example.
-          this.sendTempReply(message, "Example usage: ta cs1410 phys2210");
+          this.sendReply(message, "Example usage: ta cs1410 phys2210");
         });
     } else {
-      this.sendTempReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
+      this.sendReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
     }
-
-    this.scrubMessage(message, 20_000);
   }
 
   private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
@@ -166,33 +168,11 @@ export class CourseSelectionController {
     return true;
   }
 
-  private sendTempReply(message: Discord.Message | Discord.PartialMessage, reply: string): void {
+  private sendReply(message: Discord.Message | Discord.PartialMessage, reply: string): void {
     message.channel.send(reply)
-      .then(sentMessage => {
-        this.scrubMessage(sentMessage, 20_000);
-      })
       .catch(err => {
         console.error("Could not send course selection reply message.");
         console.error(err);
       });
-  }
-
-  private scrubMessage(message: Discord.Message | Discord.PartialMessage, delay: number): void {
-    timer(delay).subscribe(() => {
-      message.delete({
-        reason: "Automatic scrubbing of course selection message to maintain privacy."
-      })
-        .catch(err => {
-          if(err.httpStatus) {
-            if(err.httpStatus === 404) {
-              // Message was deleted by someone else.
-              console.error("Could not scrub (delete) course selection message. It may have been deleted by someone else.");
-              return;
-            }
-          }
-          console.error("Could not scrub (delete) course selection message. Please fix this, as it is a privacy concern.");
-          console.error(err);
-        });
-    });
   }
 }
