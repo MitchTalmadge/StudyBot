@@ -85,7 +85,7 @@ export class UserDatabaseService {
 
     await user.save();
 
-    RoleAssignmentDiscordService.queueTARoleAssignments(guildContext, discordMember, taCourses, nonTACourses);
+    return RoleAssignmentDiscordService.queueTARoleAssignments(guildContext, discordMember, taCourses, nonTACourses);
   }
 
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
