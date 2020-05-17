@@ -30,9 +30,8 @@ export class CourseSelectionController {
           }
         })
         .catch(err => {
-          this.sendReply(message, err);
+          this.sendReply(message, `${err} Example usage: join cs1410 phys2210`);
           // TODO: Better example.
-          this.sendReply(message, "Example usage: join cs1410 phys2210");
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
       this.sendReply(message, "Processing, please wait...");
@@ -46,9 +45,8 @@ export class CourseSelectionController {
           }
         })
         .catch(err => {
-          this.sendReply(message, err);
+          this.sendReply(message, `${err} Example usage: leave cs1410 phys2210`);
           // TODO: Better example.
-          this.sendReply(message, "Example usage: leave cs1410 phys2210");
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
       // Join the courses just in case (also takes care of validation).
@@ -65,9 +63,8 @@ export class CourseSelectionController {
             });
         })
         .catch(err => {
-          this.sendReply(message, err);
+          this.sendReply(message, `${err} Example usage: ta cs1410 phys2210`);
           // TODO: Better example.
-          this.sendReply(message, "Example usage: ta cs1410 phys2210");
         });
     } else {
       this.sendReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
@@ -75,7 +72,12 @@ export class CourseSelectionController {
   }
 
   private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
-    const numbers = CourseUtils.parseCourseNumberList(message.content.substring(message.content.indexOf(" ") + 1));
+    const separatorIndex = message.content.indexOf(" ");
+    if(separatorIndex === -1) {
+      return Promise.reject(`${message.author}, I didn't see any course numbers in your request!`);
+    }
+    
+    const numbers = CourseUtils.parseCourseNumberList(message.content.substring(separatorIndex + 1));
     // Check for empty request
     if (Object.keys(numbers).length === 0) {
       return Promise.reject(`${message.author}, I didn't see any course numbers in your request!`);
