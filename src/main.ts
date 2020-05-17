@@ -2,7 +2,6 @@ import * as Discord from "discord.js";
 import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database/database";
 import { GuildContext } from "./guild-context";
-import { Major } from "./models/major";
 import { MajorMap } from "./models/major-map";
 
 class StudyBot {
@@ -26,6 +25,7 @@ class StudyBot {
 
     this.client.on("ready", () => this.onDiscordReady());
     this.client.on("message", (msg) => this.onMessageReceived(msg));
+    this.client.on("rateLimit", (rateLimitData => this.onRateLimit(rateLimitData)));
   }
 
   private static onDiscordReady(): void {
@@ -68,6 +68,10 @@ class StudyBot {
       return;
 
     this.guildContexts[message.guild.id].onMessageReceived(message);
+  }
+
+  private static onRateLimit(rateLimitData: Discord.RateLimitData): void {
+    console.error("Rate limit encountered:", rateLimitData);
   }
 }
 
