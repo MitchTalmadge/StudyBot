@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { Course } from "src/models/course";
 import { CourseImplementDiscordService } from "./implement/course";
+import { DiscordUtils } from "src/utils/discord";
 import { GuildContext } from "src/guild-context";
 
 export class RoleAssignmentDiscordService {
@@ -10,17 +11,20 @@ export class RoleAssignmentDiscordService {
   /**
    * Queues a promise by appending it to the guild's queue chain.
    * @param guildContext The guild initiating the queue request.
-   * @param promise The promise to queue.
+   * @param promiseFunc A function that returns the promise to execute.
    */
-  private static queue(guildContext: GuildContext, promise: Promise<any>): void {
+  private static queue(guildContext: GuildContext, promiseFunc: () => Promise<any>): Promise<void> {
     if (!this.roleAssignmentQueues[guildContext.guild.id]) {
       this.roleAssignmentQueues[guildContext.guild.id] = Promise.resolve();
     }
 
     this.roleAssignmentQueues[guildContext.guild.id] =
       this.roleAssignmentQueues[guildContext.guild.id].finally(() => {
-        return promise;
+        // Delay each queue action to help avoid rate limits.
+        return DiscordUtils.rateLimitAvoidance().then(promiseFunc);
       });
+
+    return this.roleAssignmentQueues[guildContext.guild.id];
   }
 
   /**
@@ -30,20 +34,15 @@ export class RoleAssignmentDiscordService {
    * @param courses The courses to add as roles.
    */
   public static queueCourseRolesAddition(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const promise = this.assignCourseRoles(guildContext, discordMember, courses, [])
+    return this.queue(
+      guildContext,
+      () => this.assignCourseRoles(guildContext, discordMember, courses, []))
       .then(() => {
         console.log("Roles assigned.");
       })
       .catch(err => {
         console.error(`Failed to assign roles to member ${discordMember.id}:`, err);
       });
-
-    this.queue(
-      guildContext,
-      promise
-    );
-
-    return promise;
   }
 
   /**
@@ -53,33 +52,27 @@ export class RoleAssignmentDiscordService {
    * @param courses The courses to remove as roles.
    */
   public static queueCourseRolesRemoval(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const promise = this.assignCourseRoles(guildContext, discordMember, [], courses)
+    return this.queue(
+      guildContext,
+      () => this.assignCourseRoles(guildContext, discordMember, [], courses))
       .then(() => {
         console.log("Roles removed.");
       })
       .catch(err => {
         console.error(`Failed to remove roles from member ${discordMember.id}:`, err);
       });
-
-    this.queue(
-      guildContext,
-      promise
-    );
-
-    return promise;
   }
 
-  public static queueTARoleAssignments(guildContext: GuildContext, discordMember: Discord.GuildMember, taCourses: Course[], nonTACourses: Course[]): void {
-    this.queue(
+  public static queueTARoleAssignments(guildContext: GuildContext, discordMember: Discord.GuildMember, taCourses: Course[], nonTACourses: Course[]): Promise<void> {
+    return this.queue(
       guildContext,
-      this.assignTARoles(guildContext, discordMember, taCourses, nonTACourses)
-        .then(() => {
-          console.log("TA roles assigned.");
-        })
-        .catch(err => {
-          console.error(`Failed to assign TA roles for member ${discordMember.id}:`, err);
-        })
-    );
+      () => this.assignTARoles(guildContext, discordMember, taCourses, nonTACourses))
+      .then(() => {
+        console.log("TA roles assigned.");
+      })
+      .catch(err => {
+        console.error(`Failed to assign TA roles for member ${discordMember.id}:`, err);
+      });
   }
 
   private static async assignCourseRoles(guildContext: GuildContext, discordMember: Discord.GuildMember, coursesToAdd: Course[], coursesToRemove: Course[]): Promise<void> {
