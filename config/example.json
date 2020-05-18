@@ -5,6 +5,28 @@
     "address": "127.0.0.1:27017",
     "name": "studybot"
   },
+
+  "web": {
+    "enabled": true,
+    "port": 8080,
+    "basename": "/",
+    "publicUri": "http://example.com:8080"
+  },
+
+  "smtp": {
+    "host": "localhost",
+    "port": 465,
+    "secure": true,
+    "user": "studybot",
+    "pass": "example",
+    "fromAddress": "studybot@localhost",
+    "fromName": "StudyBot"
+  },
+
+  "verification": {
+    "enabled": true,
+    "verifier": "utah"
+  },
   
   "guilds": {
     "28357239856723895": {

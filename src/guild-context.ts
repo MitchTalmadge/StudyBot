@@ -3,7 +3,7 @@ import { CourseSelectionController } from "./controllers/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
-import { UserDatabaseService } from "./services/database/user";
+import { VerificationController } from "./controllers/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 
 /**
@@ -14,6 +14,8 @@ export class GuildContext {
   private courseService: CourseService;
 
   private courseSelectionController: CourseSelectionController;
+  
+  private verificationController: VerificationController;
 
   constructor(
     public guild: Discord.Guild,
@@ -37,12 +39,16 @@ export class GuildContext {
       this,
       this.courseService
     );
+
+    this.verificationController = new VerificationController(this);
   }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.channel instanceof Discord.TextChannel) {
       if (message.channel.name === CourseSelectionController.CHANNEL_NAME) {
         this.courseSelectionController.onMessageReceived(message);
+      } else if (message.channel.name === VerificationController.CHANNEL_NAME) {
+        this.verificationController.onMessageReceived(message);
       }
     }
   }

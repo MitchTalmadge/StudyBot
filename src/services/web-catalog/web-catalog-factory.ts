@@ -1,6 +1,7 @@
 import { EmptyWebCatalogService } from "./empty-web-catalog";
 import { UtahWebCatalogService } from "./utah-web-catalog";
 
+// TODO: rename
 export class WebCatalogFactory {
   public getWebCatalog(type: string) {
     if (!type) {

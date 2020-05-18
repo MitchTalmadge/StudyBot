@@ -14,7 +14,6 @@ export class CourseSelectionController {
     private guildContext: GuildContext,
     private courseService: CourseService
   ) { 
-    // TODO: Delete all messages in channel on startup and write an instructions message.
   }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {

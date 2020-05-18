@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { Config } from "src/models/config";
-import { isArray } from "util";
+import { VerifierType } from "src/models/verifier-type.enum";
 
 export class ConfigService {
   private static config: Config;
@@ -18,7 +18,13 @@ export class ConfigService {
         }
 
         this.config = JSON.parse(data);
-        this.validateConfig();
+
+        try {
+          this.validateConfig();
+        } catch (err) {
+          console.error("The configuration file has a problem and the bot cannot start:", err.message);
+          process.exit(1);
+        }
 
         // Override database connection parameters if in development mode and alternatives are available.
         if (process.env.NODE_ENV === "development") {
@@ -38,7 +44,16 @@ export class ConfigService {
       throw Error("The discord token is missing or empty.");
     }
 
-    // Database
+    this.validateDatabaseConfig();
+
+    this.validateWebConfig();
+
+    this.validateVerificationConfig();
+
+    this.validateGuildsConfig();
+  }
+
+  private static validateDatabaseConfig(): void {
     if (!this.config.database) {
       throw Error("The database config is missing.");
     }
@@ -48,8 +63,72 @@ export class ConfigService {
     if (!this.config.database.name) {
       throw Error("The database name is missing or empty.");
     }
+  }
 
-    // Guilds
+  private static validateWebConfig(): void {
+    if(!this.config.web) {
+      throw Error("The web config is missing.");
+    }
+    if(this.config.web.enabled) {
+      if(!this.config.web.port) {
+        throw Error("Web port is missing or empty.");
+      }
+      if(!this.config.web.basename) {
+        throw Error("Web basename is missing or empty.");
+      }
+    }
+  }
+
+  private static validateSMTPConfig(): void {
+    if(!this.config.smtp) {
+      throw Error("The STMP config is missing.");
+    }
+    if(!this.config.smtp.host) {
+      throw Error("SMTP host is missing or empty.");
+    }
+    if(!this.config.smtp.port) {
+      throw Error("SMTP port is missing or empty.");
+    }
+    if(!this.config.smtp.user) {
+      throw Error("SMTP user is missing or empty.");
+    }
+    if(!this.config.smtp.pass) {
+      throw Error("SMTP pass is missing or empty.");
+    }
+    if(!this.config.smtp.fromAddress) {
+      throw Error("SMTP fromAddress is missing or empty.");
+    }
+    if(!this.config.smtp.fromName) {
+      throw Error("SMTP fromName is missing or empty.");
+    }
+  }
+
+  private static validateVerificationConfig(): void {
+    if(!this.config.verification) {
+      throw Error("The verification config is missing.");
+    }
+    if(this.config.verification.enabled) {
+      if(!this.config.verification.verifier) {
+        throw Error("Verification verifier is missing or empty.");
+      }
+      if(!Object.values(VerifierType).includes(this.config.verification.verifier)) {
+        throw Error("Verification verifier is not valid.");
+      }
+      if(!this.config.web.enabled) {
+        throw Error("Web must be enabled when Verification is enabled.");
+      }
+      if(!this.config.web.publicUri) {
+        throw Error("The Web publicUri is required when Verification is enabled.");
+      }
+      if(!this.config.smtp) {
+        throw Error("Verification is enabled but the SMTP config is missing.");
+      }
+
+      this.validateSMTPConfig();
+    }
+  }
+
+  private static validateGuildsConfig(): void {
     if (!this.config.guilds) {
       throw Error("The guilds configuration is missing.");
     }
@@ -70,6 +149,4 @@ export class ConfigService {
       //TODO: web catalog validation.
     });
   }
-
-
 }
