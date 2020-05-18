@@ -1,9 +1,11 @@
 {
   "discordToken": null,
+
   "database": {
     "address": "127.0.0.1:27017",
     "name": "studybot"
   },
+  
   "guilds": {
     "28357239856723895": {
       "majors": ["cs"],
@@ -13,5 +15,7 @@
       "majors": ["phys", "chem"],
       "webCatalog": null
     }
-  }
+  },
+
+  "enablePrivacyMode": false
 }

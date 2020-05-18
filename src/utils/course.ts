@@ -1,4 +1,6 @@
 import { Course } from "src/models/course";
+import * as crypto from 'crypto';
+import { ConfigService } from "src/services/config";
 
 export class CourseUtils {
   public static parseCourseNumberList(list: string): { [majorPrefix: string]: string[] } {
@@ -30,7 +32,12 @@ export class CourseUtils {
   }
 
   public static getMainRoleName(course: Course): string {
-    return this.convertToString(course);
+    if (ConfigService.getConfig().enablePrivacyMode) {
+      const hash = crypto.createHash("sha256");
+      return hash.update(this.convertToString(course)).digest("hex").substr(0, 10);
+    } else {
+      return this.convertToString(course);
+    }
   }
 
   public static getTARoleName(course: Course): string {
@@ -43,6 +50,6 @@ export class CourseUtils {
 
   public static getVoiceChannelName(course: Course): string {
     return `${this.convertToString(course)}-voice`;
-  }  
+  }
 
 }

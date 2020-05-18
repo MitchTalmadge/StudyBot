@@ -4,6 +4,8 @@ export interface Config {
   database: DatabaseConfig;
 
   guilds: {[guildId: string]: GuildConfig};
+
+  enablePrivacyMode: boolean;
 }
 
 export interface DatabaseConfig {
