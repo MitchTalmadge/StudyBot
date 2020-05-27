@@ -22,7 +22,7 @@ export abstract class VerifierService {
 
     return EmailService.sendEmail(this.convertToEmailAddress(studentId),
       "Discord Verification",
-      `Hello!\n\nWe have received a request to verify the student ID ${studentId} for the Discord user who has the username ${user.username}#${user.discriminator}. If this is you, go ahead and click the link below to complete verification. If not, please discard this email, as the student ID may have been mistyped. Thank you!\n\n${verificationUrl}`
+      `Hello!\n\nWe have received a request to verify the student ID "${studentId}" for the Discord user "${user.username}#${user.discriminator}". If this is you, simply click the link below to complete verification. If not, there is nothing to be concerned about. It's more than likely that someone mistyped their student ID. You may safely delete this email.\n\n${verificationUrl}`
     );
   }
 }
