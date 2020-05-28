@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
-import { GuildContext } from "src/guild-context";
-import { Major } from "src/models/major";
-import { MajorUtils } from "src/utils/major";
+import { GuildContext } from "guild-context";
+import { Major } from "models/major";
+import { MajorUtils } from "utils/major";
 
 export class MajorCategoryImplementDiscordService {
   public static async createTextCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {

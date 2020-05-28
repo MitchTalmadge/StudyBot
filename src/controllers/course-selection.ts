@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { Course } from "src/models/course";
-import { CourseService } from "src/services/course";
-import { CourseUtils } from "src/utils/course";
-import { GuildContext } from "src/guild-context";
-import { Major } from "src/models/major";
-import { UserDatabaseService } from "src/services/database/user";
+import { Course } from "models/course";
+import { CourseService } from "services/course";
+import { CourseUtils } from "utils/course";
+import { GuildContext } from "guild-context";
+import { Major } from "models/major";
+import { UserDatabaseService } from "services/database/user";
 import _ from "lodash";
 
 export class CourseSelectionController {

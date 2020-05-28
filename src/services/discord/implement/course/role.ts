@@ -1,7 +1,7 @@
 import * as Discord from "discord.js";
-import { Course } from "src/models/course";
-import { CourseUtils } from "src/utils/course";
-import { GuildContext } from "src/guild-context";
+import { Course } from "models/course";
+import { CourseUtils } from "utils/course";
+import { GuildContext } from "guild-context";
 
 export class CourseRoleImplementDiscordService {
   public static async createMainRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {

@@ -1,12 +1,12 @@
-import { Course } from "src/models/course";
+import { Course } from "models/course";
 import { CourseChannelImplementDiscordService } from "./channel";
 import { CourseRoleImplementDiscordService } from "./role";
-import { DiscordUtils } from "src/utils/discord";
-import { GuildContext } from "src/guild-context";
-import { GuildStorageDatabaseService } from "src/services/database/guild-storage";
-import { ICourseImplementDiscord } from "src/models/discord/implement/course";
+import { DiscordUtils } from "utils/discord";
+import { GuildContext } from "guild-context";
+import { GuildStorageDatabaseService } from "services/database/guild-storage";
+import { ICourseImplementDiscord } from "models/discord/implement/course";
 import { MajorImplementDiscordService } from "../major";
-import { UserDatabaseService } from "src/services/database/user";
+import { UserDatabaseService } from "services/database/user";
 
 export class CourseImplementDiscordService {
   public static async getOrCreateCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {

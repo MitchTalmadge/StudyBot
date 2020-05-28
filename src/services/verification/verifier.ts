@@ -18,7 +18,7 @@ export abstract class VerifierService {
 
   public sendVerificationEmail(studentId: string, user: Discord.User, code: string): Promise<void> {
     const webConfig = ConfigService.getConfig().web;
-    const verificationUrl = `${webConfig.publicUri}${webConfig.basename}/verify?id=${user.id}&code=${code}`;
+    const verificationUrl = `${webConfig.publicUri}${webConfig.basename}/verify?code=${code}`;
 
     return EmailService.sendEmail(this.convertToEmailAddress(studentId),
       "Discord Verification",

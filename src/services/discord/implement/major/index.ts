@@ -1,9 +1,9 @@
-import { DiscordUtils } from "src/utils/discord";
-import { GuildContext } from "src/guild-context";
-import { GuildStorageDatabaseService } from "src/services/database/guild-storage";
-import { ICourseImplementDiscord } from "src/models/discord/implement/course";
-import { IMajorImplementDiscord } from "src/models/discord/implement/major";
-import { Major } from "src/models/major";
+import { DiscordUtils } from "utils/discord";
+import { GuildContext } from "guild-context";
+import { GuildStorageDatabaseService } from "services/database/guild-storage";
+import { ICourseImplementDiscord } from "models/discord/implement/course";
+import { IMajorImplementDiscord } from "models/discord/implement/major";
+import { Major } from "models/major";
 import { MajorCategoryImplementDiscordService } from "./category";
 
 export class MajorImplementDiscordService {

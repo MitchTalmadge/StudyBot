@@ -8,7 +8,7 @@
         "clean": "rimraf dist",
         "predebug": "npm run clean",
         "debug": "nodemon ./src/main.ts",
-        "debug:mongo": "nodemon ./dev/init.ts",
+        "debug:mongo": "nodemon ./src/dev/init.ts",
         "prebuild": "npm run clean",
         "build": "tsc"
     },
@@ -38,6 +38,7 @@
         "lodash": "^4.17.15",
         "moment": "^2.24.0",
         "mongoose": "^5.9.4",
+        "nanoid": "^3.1.9",
         "node": "^13.10.1",
         "nodemailer": "^6.4.6",
         "rxjs": "^6.5.4"
@@ -57,6 +58,6 @@
         "rimraf": "^3.0.2",
         "ts-node": "^8.6.2",
         "tsconfig-paths": "^3.9.0",
-        "typescript": "^3.8.3"
+        "typescript": "^3.9.3"
     }
 }

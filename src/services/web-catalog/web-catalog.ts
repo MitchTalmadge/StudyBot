@@ -1,5 +1,5 @@
-import { Course } from "src/models/course";
-import { Major } from "src/models/major";
+import { Course } from "models/course";
+import { Major } from "models/major";
 
 /**
  * This service is intended to obtain course lists from web catalogs.

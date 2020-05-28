@@ -1,5 +1,5 @@
 import mongoose, { Connection, Mongoose } from "mongoose";
-import { DatabaseConfig } from "src/models/config";
+import { DatabaseConfig } from "models/config";
 
 export class DatabaseService {
   private static mongooseInstance: Mongoose;

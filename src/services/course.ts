@@ -1,7 +1,7 @@
-import { Course } from "src/models/course";
-import { GuildContext } from "src/guild-context";
+import { Course } from "models/course";
+import { GuildContext } from "guild-context";
 import { IWebCatalogService } from "./web-catalog/web-catalog";
-import { Major } from "src/models/major";
+import { Major } from "models/major";
 import { ReplaySubject } from "rxjs";
 import _ from "lodash";
 import { first } from "rxjs/operators";
@@ -91,7 +91,7 @@ export class CourseService {
 
     return Promise.all(promises)
       .then(courses => {
-        const mapping: {validCourses: Course[], invalidCourseNames: string[]} = {validCourses: [], invalidCourseNames: []};
+        const mapping: { validCourses: Course[], invalidCourseNames: string[] } = { validCourses: [], invalidCourseNames: [] };
         courses.forEach((course, index) => {
           if(course)
             mapping.validCourses.push(course);

@@ -1,9 +1,11 @@
 import * as Discord from "discord.js";
-import { IUser, User, IUserCourseAssignment } from "src/models/database/user";
-import { Course } from "src/models/course";
-import { CourseUtils } from "src/utils/course";
-import { GuildContext } from "src/guild-context";
+import { IUser, User, IUserCourseAssignment } from "models/database/user";
+import { Course } from "models/course";
+import { CourseUtils } from "utils/course";
+import { GuildContext } from "guild-context";
 import { RoleAssignmentDiscordService } from "../discord/role-assignment";
+import { VerificationStatus } from "models/verification-status";
+import { VerificationUtils } from "utils/verification";
 import _ from "lodash";
 import moment from "moment";
 
@@ -93,5 +95,36 @@ export class UserDatabaseService {
     const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();
 
     return users;
+  }
+
+  public static async generateAndStoreVerificationCode(discordUser: Discord.User): Promise<string> {
+    const user = await this.findOrCreateUser(discordUser);
+    const verificationCode = VerificationUtils.generateVerificationCode();
+
+    user.verificationCode = verificationCode;
+    user.verificationStatus = VerificationStatus.CODE_SENT;
+    await user.save();
+
+    return verificationCode;
+  }
+
+  public static async getUserByCode(verificationCode: string): Promise<IUser> {
+    const user = await User.findOne({ "verificationCode": verificationCode }).exec();
+    return user;
+  }
+
+  public static async verifyUserByCode(verificationCode: string): Promise<boolean> {
+    const user = await this.getUserByCode(verificationCode);
+    if(!user) {
+      return false;
+    }
+
+    user.verificationStatus = VerificationStatus.VERIFIED;
+    user.verificationCode = undefined;
+    await user.save();
+
+    // TODO: give verified role
+
+    return true;
   }
 }

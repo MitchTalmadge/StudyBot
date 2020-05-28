@@ -4,7 +4,7 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 const mkdirp = require("mkdirp");
 
 async function createInMemoryDatabase() {
-  mkdirp(path.resolve(__dirname, "../temp/db/"), (err: Error | undefined) => {
+  mkdirp(path.resolve(__dirname, "../../temp/db/"), (err: Error | undefined) => {
     if (err) {
       console.error("Could not create temp directory for database.");
       throw err;
@@ -14,7 +14,7 @@ async function createInMemoryDatabase() {
   // Set up a MongoDB server for development use.
   const mongod = new MongoMemoryServer({
     instance: {
-      dbPath: path.resolve(__dirname, "../temp/db/"),
+      dbPath: path.resolve(__dirname, "../../temp/db/"),
       dbName: "development",
       port: 27017
     },

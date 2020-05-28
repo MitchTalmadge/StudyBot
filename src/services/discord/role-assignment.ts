@@ -1,11 +1,10 @@
 import * as Discord from "discord.js";
-import { Course } from "src/models/course";
+import { Course } from "models/course";
 import { CourseImplementDiscordService } from "./implement/course";
-import { DiscordUtils } from "src/utils/discord";
-import { GuildContext } from "src/guild-context";
+import { DiscordUtils } from "utils/discord";
+import { GuildContext } from "guild-context";
 
 export class RoleAssignmentDiscordService {
-
   private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
 
   /**

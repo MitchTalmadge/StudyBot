@@ -1,6 +1,6 @@
 import * as fs from "fs";
-import { Config } from "src/models/config";
-import { VerifierType } from "src/models/verifier-type.enum";
+import { Config } from "models/config";
+import { VerifierType } from "models/verifier-type.enum";
 
 export class ConfigService {
   private static config: Config;

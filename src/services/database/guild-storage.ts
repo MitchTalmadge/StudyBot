@@ -1,10 +1,10 @@
-import { GuildStorage, IGuildStorage } from "src/models/database/guild-storage";
-import { Course } from "src/models/course";
-import { CourseUtils } from "src/utils/course";
-import { GuildContext } from "src/guild-context";
-import { ICourseImplementDiscord } from "src/models/discord/implement/course";
-import { IMajorImplementDiscord } from "src/models/discord/implement/major";
-import { Major } from "src/models/major";
+import { GuildStorage, IGuildStorage } from "models/database/guild-storage";
+import { Course } from "models/course";
+import { CourseUtils } from "utils/course";
+import { GuildContext } from "guild-context";
+import { ICourseImplementDiscord } from "models/discord/implement/course";
+import { IMajorImplementDiscord } from "models/discord/implement/major";
+import { Major } from "models/major";
 
 export class GuildStorageDatabaseService {
   public static async findOrCreateGuildStorage(guildContext: GuildContext): Promise<IGuildStorage> {

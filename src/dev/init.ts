@@ -4,5 +4,5 @@ process.env.NODE_ENV = "development";
 
 preInit()
   .then(() => {
-    require("../src/main");
+    require("../main");
   });

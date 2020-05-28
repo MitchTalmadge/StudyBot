@@ -1,6 +1,6 @@
-import { Course } from "src/models/course";
+import { Course } from "models/course";
 import { IWebCatalogService } from "./web-catalog";
-import { Major } from "src/models/major";
+import { Major } from "models/major";
 
 /**
  * Provides an empty array of courses as a fallback for when no web catalogs are configured to be used.

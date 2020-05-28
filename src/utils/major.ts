@@ -1,7 +1,6 @@
-import { Major } from "src/models/major";
+import { Major } from "models/major";
 
 export class MajorUtils {
-
   public static getTextCategoryName(major: Major): string {
     return `${major.prefix}-chat`;
   }
@@ -9,5 +8,4 @@ export class MajorUtils {
   public static getVoiceCategoryName(major: Major): string {
     return `${major.prefix}-voice`;
   }
-
 }

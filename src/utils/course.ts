@@ -1,6 +1,6 @@
-import { Course } from "src/models/course";
-import * as crypto from 'crypto';
-import { ConfigService } from "src/services/config";
+import * as crypto from "crypto";
+import { ConfigService } from "services/config";
+import { Course } from "models/course";
 
 export class CourseUtils {
   public static parseCourseNumberList(list: string): { [majorPrefix: string]: string[] } {
@@ -51,5 +51,4 @@ export class CourseUtils {
   public static getVoiceChannelName(course: Course): string {
     return `${this.convertToString(course)}-voice`;
   }
-
 }

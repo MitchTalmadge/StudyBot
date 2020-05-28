@@ -1,27 +1,12 @@
 {
-    "compilerOptions": {
-      "module": "commonjs",
-      "esModuleInterop": true,
-      "target": "es6",
-      "noImplicitAny": false,
-      "moduleResolution": "node",
-      "sourceMap": true,
-      "outDir": "dist",
-      "baseUrl": ".",
-      "paths": {
-        "src/*": [
-          "src/*"
-        ],
-        "*": [
-          "node_modules/*"
-        ],
-      }
-    },
-    "angularCompilerOptions": {
-      "enableIvy": true
-    },
-    "include": [
-      "src/**/*"
-    ]
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "noImplicitAny": false,
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./src"
   }
+}
   

@@ -7,6 +7,7 @@ export interface IUser extends Document {
   discordUserId: string;
   studentId: string;
   verificationStatus: VerificationStatus;
+  verificationCode: string;
 
   guilds: Map<string, {
     courses: IUserCourseAssignment[];
@@ -25,6 +26,7 @@ export const UserSchema = new Schema({
   discordUserId: { type: Schema.Types.String, required: true, unique: true },
   studentId: { type: Schema.Types.String, required: false },
   verificationStatus: { type: Schema.Types.Number, required: true, default: VerificationStatus.UNVERIFIED },
+  verificationCode: { type: Schema.Types.String, required: false, unique: true },
 
   guilds: {
     type: Map,
