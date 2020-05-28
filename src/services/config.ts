@@ -115,12 +115,6 @@ export class ConfigService {
       if(!Object.values(VerifierType).includes(this.config.verification.verifier)) {
         throw Error("Verification verifier is not valid.");
       }
-      if(!this.config.web.enabled) {
-        throw Error("Web must be enabled when Verification is enabled.");
-      }
-      if(!this.config.web.publicUri) {
-        throw Error("The Web publicUri is required when Verification is enabled.");
-      }
       if(!this.config.smtp) {
         throw Error("Verification is enabled but the SMTP config is missing.");
       }

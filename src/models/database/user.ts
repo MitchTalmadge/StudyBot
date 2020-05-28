@@ -26,7 +26,7 @@ export const UserSchema = new Schema({
   discordUserId: { type: Schema.Types.String, required: true, unique: true },
   studentId: { type: Schema.Types.String, required: false },
   verificationStatus: { type: Schema.Types.Number, required: true, default: VerificationStatus.UNVERIFIED },
-  verificationCode: { type: Schema.Types.String, required: false, unique: true },
+  verificationCode: { type: Schema.Types.String, required: false },
 
   guilds: {
     type: Map,

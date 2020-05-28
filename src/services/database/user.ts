@@ -1,5 +1,5 @@
 import * as Discord from "discord.js";
-import { IUser, User, IUserCourseAssignment } from "models/database/user";
+import { IUser, IUserCourseAssignment, User } from "models/database/user";
 import { Course } from "models/course";
 import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
@@ -10,12 +10,12 @@ import _ from "lodash";
 import moment from "moment";
 
 export class UserDatabaseService {
-  private static async findOrCreateUser(discordUser: Discord.User): Promise<IUser> {
-    let user = await User.findOne({ discordUserId: discordUser.id }).exec();
+  private static async findOrCreateUser(discordUserId: string): Promise<IUser> {
+    let user = await User.findOne({ discordUserId: discordUserId }).exec();
     if (!user) {
       user = await new User(
         <IUser>{
-          discordUserId: discordUser.id
+          discordUserId: discordUserId
         }).save();
     }
 
@@ -23,7 +23,7 @@ export class UserDatabaseService {
   }
 
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user);
+    const user = await this.findOrCreateUser(discordMember.user.id);
 
     const serializedCourses: IUserCourseAssignment[] =
       courses.map(course =>
@@ -48,7 +48,7 @@ export class UserDatabaseService {
   }
 
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user);
+    const user = await this.findOrCreateUser(discordMember.user.id);
 
     const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
@@ -68,7 +68,7 @@ export class UserDatabaseService {
   }
 
   public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user);
+    const user = await this.findOrCreateUser(discordMember.user.id);
     
     const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
@@ -90,6 +90,10 @@ export class UserDatabaseService {
     return RoleAssignmentDiscordService.queueTARoleAssignments(guildContext, discordMember, taCourses, nonTACourses);
   }
 
+  public static async getUserByDiscordUserId(discordUserId: string): Promise<IUser> {
+    return await this.findOrCreateUser(discordUserId);
+  }
+
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
     const key = `guilds.${guildContext.guild.id}.courses.courseKey`;
     const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();
@@ -98,7 +102,7 @@ export class UserDatabaseService {
   }
 
   public static async generateAndStoreVerificationCode(discordUser: Discord.User): Promise<string> {
-    const user = await this.findOrCreateUser(discordUser);
+    const user = await this.findOrCreateUser(discordUser.id);
     const verificationCode = VerificationUtils.generateVerificationCode();
 
     user.verificationCode = verificationCode;
@@ -113,18 +117,13 @@ export class UserDatabaseService {
     return user;
   }
 
-  public static async verifyUserByCode(verificationCode: string): Promise<boolean> {
-    const user = await this.getUserByCode(verificationCode);
-    if(!user) {
-      return false;
-    }
+  public static async setUserVerified(discordUserId: string): Promise<void> {
+    const user = await this.findOrCreateUser(discordUserId);
 
     user.verificationStatus = VerificationStatus.VERIFIED;
     user.verificationCode = undefined;
     await user.save();
 
     // TODO: give verified role
-
-    return true;
   }
 }

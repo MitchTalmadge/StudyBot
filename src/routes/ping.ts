@@ -1,8 +1,9 @@
-import PingRoutes from "./ping";
 import { Router } from "express";
 
 const router = Router();
 
-router.use("/api", PingRoutes);
+router.get("/ping", (_req, res) => {
+  res.status(200).send("pong");
+});
 
 export default router;

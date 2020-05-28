@@ -1,9 +1,9 @@
 import * as Discord from "discord.js";
-import { CourseSelectionController } from "./controllers/course-selection";
+import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
-import { VerificationController } from "./controllers/verification";
+import { VerificationChannelController } from "./controllers/channel/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 
 /**
@@ -13,9 +13,9 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 export class GuildContext {
   private courseService: CourseService;
 
-  private courseSelectionController: CourseSelectionController;
+  private courseSelectionController: CourseSelectionChannelController;
   
-  private verificationController: VerificationController;
+  private verificationController: VerificationChannelController;
 
   constructor(
     public guild: Discord.Guild,
@@ -35,19 +35,19 @@ export class GuildContext {
   }
 
   private initControllers(): void {
-    this.courseSelectionController = new CourseSelectionController(
+    this.courseSelectionController = new CourseSelectionChannelController(
       this,
       this.courseService
     );
 
-    this.verificationController = new VerificationController(this);
+    this.verificationController = new VerificationChannelController(this);
   }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.channel instanceof Discord.TextChannel) {
-      if (message.channel.name === CourseSelectionController.CHANNEL_NAME) {
+      if (message.channel.name === CourseSelectionChannelController.CHANNEL_NAME) {
         this.courseSelectionController.onMessageReceived(message);
-      } else if (message.channel.name === VerificationController.CHANNEL_NAME) {
+      } else if (message.channel.name === VerificationChannelController.CHANNEL_NAME) {
         this.verificationController.onMessageReceived(message);
       }
     }
