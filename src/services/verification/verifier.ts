@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { ConfigService } from "../config";
 import { EmailService } from "../email";
+import { RouteUtils } from "utils/route";
 
 
 /**
@@ -17,8 +17,7 @@ export abstract class VerifierService {
   public abstract convertToEmailAddress(studentId: string): string;
 
   public sendVerificationEmail(studentId: string, user: Discord.User, code: string): Promise<void> {
-    const webConfig = ConfigService.getConfig().web;
-    const verificationUrl = `${webConfig.publicUri}${webConfig.basename}/verify?code=${code}`;
+    const verificationUrl = RouteUtils.generatePublicUrl("/api/verify", { code });
 
     return EmailService.sendEmail(this.convertToEmailAddress(studentId),
       "Discord Verification",

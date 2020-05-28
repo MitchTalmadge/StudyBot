@@ -1,6 +1,7 @@
 import * as fs from "fs";
 import { Config } from "models/config";
 import { VerifierType } from "models/verifier-type.enum";
+import { RouteUtils } from "utils/route";
 
 export class ConfigService {
   private static config: Config;
@@ -71,11 +72,11 @@ export class ConfigService {
     }
     if(this.config.web.enabled) {
       if(!this.config.web.port) {
-        throw Error("Web port is missing or empty.");
+        throw Error("Web port is missing or empty."); 
       }
-      if(!this.config.web.basename) {
-        throw Error("Web basename is missing or empty.");
-      }
+      
+      // Sanitize basename
+      this.config.web.basename = RouteUtils.removeLeadingAndTrailingSlashes(this.config.web.basename);
     }
   }
 

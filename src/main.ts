@@ -3,6 +3,7 @@ import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database/database";
 import { GuildContext } from "./guild-context";
 import { MajorMap } from "./models/major-map";
+import express from "express";
 
 class StudyBot {
   private static client: Discord.Client;
@@ -17,6 +18,24 @@ class StudyBot {
     // Connect to database.
     console.log("Connecting to database...");
     await DatabaseService.connect(ConfigService.getConfig().database);
+
+    // Start web server.
+    if(ConfigService.getConfig().web.enabled) {
+      console.log("Starting web server...");
+
+      // Configure express.
+      const app = express();
+
+      // Configure routing.
+      const port = ConfigService.getConfig().web.port;
+      const apiRoutes = require("./routes/api").default;
+      app.use(`/${ConfigService.getConfig().web.basename}`, apiRoutes); 
+      app.get("/*", (_req, res) => {
+        res.status(404).send("Requested Endpoint Not Found");
+      });
+
+      app.listen(port, () => console.log(`Web server started on port ${port}`));
+    }
 
     // Login to Discord.
     console.log("Logging into Discord...");
