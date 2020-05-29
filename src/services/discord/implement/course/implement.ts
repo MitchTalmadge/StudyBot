@@ -7,6 +7,7 @@ import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { ICourseImplementDiscord } from "models/discord/implement/course";
 import { MajorImplementDiscordService } from "../major/implement";
 import { UserDatabaseService } from "services/database/user";
+import { VerificationImplementDiscordService } from "../verification/implement";
 
 export class CourseImplementDiscordService {
   public static async getOrCreateCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
@@ -27,6 +28,7 @@ export class CourseImplementDiscordService {
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
     const majorImplement = await MajorImplementDiscordService.getOrCreateMajorImplement(guildContext, course.major);
+    const verificationImplement = await VerificationImplementDiscordService.getOrCreateVerificationImplement(guildContext);
     
     // Delays are to avoid rate limits.
     await DiscordUtils.rateLimitAvoidance();
@@ -34,9 +36,9 @@ export class CourseImplementDiscordService {
     await DiscordUtils.rateLimitAvoidance();
     const taRoleId = (await CourseRoleImplementDiscordService.createTARole(guildContext, course)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const mainChannelId = (await CourseChannelImplementDiscordService.createMainChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId)).id;
+    const mainChannelId = (await CourseChannelImplementDiscordService.createMainChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const voiceChannelId = (await CourseChannelImplementDiscordService.createVoiceChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId)).id;
+    const voiceChannelId = (await CourseChannelImplementDiscordService.createVoiceChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
 
     const implement = {
       mainRoleId,

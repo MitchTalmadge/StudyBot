@@ -4,7 +4,7 @@ import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
 
 export class CourseChannelImplementDiscordService {
-  public static async createMainChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.TextChannel> {
+  public static async createMainChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.TextChannel> {
     const channel = await guildContext.guild.channels.create(
       CourseUtils.getMainChannelName(course),
       {
@@ -16,7 +16,14 @@ export class CourseChannelImplementDiscordService {
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
-            deny: ["VIEW_CHANNEL", "CREATE_INSTANT_INVITE"]
+            // TODO: only deny speak if verification enabled
+            deny: ["VIEW_CHANNEL", "CREATE_INSTANT_INVITE", "SEND_MESSAGES", "ADD_REACTIONS"]
+          },
+          // TODO: only add verification role if enabled
+          {
+            type: "role",
+            id: verificationRoleId,
+            allow: ["SEND_MESSAGES", "ADD_REACTIONS"]
           },
           {
             type: "role",
@@ -27,7 +34,7 @@ export class CourseChannelImplementDiscordService {
             type: "role",
             id: taRoleId,
             allow: ["VIEW_CHANNEL", "MANAGE_MESSAGES"]
-          }
+          },
         ],
         reason: "StudyBot automatic channel creation.",
       }
@@ -36,7 +43,7 @@ export class CourseChannelImplementDiscordService {
     return channel;
   }
 
-  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string): Promise<Discord.VoiceChannel> {
+  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.VoiceChannel> {
     const channel = await guildContext.guild.channels.create(
       CourseUtils.getVoiceChannelName(course),
       {
@@ -47,7 +54,14 @@ export class CourseChannelImplementDiscordService {
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
-            deny: ["VIEW_CHANNEL", "STREAM"]
+            // TODO: only deny speak if verification enabled
+            deny: ["VIEW_CHANNEL", "STREAM", "SPEAK"]
+          },
+          // TODO: only add verification role if enabled
+          {
+            type: "role",
+            id: verificationRoleId,
+            allow: ["SPEAK"]
           },
           {
             type: "role",

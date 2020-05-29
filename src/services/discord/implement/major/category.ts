@@ -13,8 +13,8 @@ export class MajorCategoryImplementDiscordService {
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
-            deny: ["VIEW_CHANNEL", "CREATE_INSTANT_INVITE"]
-          },
+            deny: ["VIEW_CHANNEL"]
+          }
         ],
         reason: "StudyBot automatic major text category creation.",
       }
@@ -32,8 +32,8 @@ export class MajorCategoryImplementDiscordService {
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
-            deny: ["VIEW_CHANNEL", "CREATE_INSTANT_INVITE"]
-          },
+            deny: ["VIEW_CHANNEL"]
+          }
         ],
         reason: "StudyBot automatic major voice category creation.",
       }
