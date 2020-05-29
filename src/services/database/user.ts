@@ -101,10 +101,11 @@ export class UserDatabaseService {
     return users;
   }
 
-  public static async generateAndStoreVerificationCode(discordUser: Discord.User): Promise<string> {
+  public static async generateAndStoreVerificationCode(discordUser: Discord.User, studentId: string): Promise<string> {
     const user = await this.findOrCreateUser(discordUser.id);
     const verificationCode = VerificationUtils.generateVerificationCode();
 
+    user.studentId = studentId;
     user.verificationCode = verificationCode;
     user.verificationStatus = VerificationStatus.CODE_SENT;
     await user.save();
