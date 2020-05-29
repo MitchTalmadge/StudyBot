@@ -118,13 +118,13 @@ export class UserDatabaseService {
     return user;
   }
 
-  public static async setUserVerified(discordUserId: string): Promise<void> {
-    const user = await this.findOrCreateUser(discordUserId);
+  public static async setUserVerified(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
+    const user = await this.findOrCreateUser(discordMember.id);
 
     user.verificationStatus = VerificationStatus.VERIFIED;
     user.verificationCode = undefined;
     await user.save();
 
-    // TODO: give verified role
+    return RoleAssignmentDiscordService.queueVerificationRoleAssignment(guildContext, discordMember);
   }
 }

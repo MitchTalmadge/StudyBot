@@ -39,7 +39,7 @@ export class VerificationChannelController extends ChannelController {
           } else if (user.verificationStatus === VerificationStatus.CODE_SENT) {
             if(contents.trim() === user.verificationCode) {
               message.reply("success! You will be able to speak momentarily.");
-              UserDatabaseService.setUserVerified(message.author.id)
+              UserDatabaseService.setUserVerified(this.guildContext, message.member)
                 .catch(err => {
                   console.error(`Could not set user with ID ${message.author.id} as verified`, err);
                   message.reply("sorry! There was an error while giving you the verified role. Please ask an admin for help!");
