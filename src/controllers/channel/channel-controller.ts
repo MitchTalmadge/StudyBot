@@ -7,4 +7,6 @@ export abstract class ChannelController {
   }
 
   public abstract onMessageReceived(message: Discord.Message | Discord.PartialMessage): void;
+
+  // TODO: reply and auto-deletion utils
 }

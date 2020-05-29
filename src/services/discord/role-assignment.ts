@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
 import { Course } from "models/course";
-import { CourseImplementDiscordService } from "./implement/course";
+import { CourseImplementDiscordService } from "./implement/course/implement";
 import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 

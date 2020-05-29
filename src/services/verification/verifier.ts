@@ -11,6 +11,7 @@ export abstract class VerifierService {
    * @returns True if the input could pass as a student ID, false if not.
    */
   public abstract looksLikeStudentID(input: string): boolean;
+  // TODO: Student ID sanitization
 
   public abstract convertStudentIDToEmailAddress(studentId: string): string;
 

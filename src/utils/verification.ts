@@ -5,4 +5,8 @@ export class VerificationUtils {
   public static generateVerificationCode(): string {
     return nanoid();
   }
+
+  public static getRoleName(): string {
+    return "verified";
+  }
 }

@@ -50,7 +50,7 @@ export class VerificationChannelController extends ChannelController {
         }
 
         if(this.verifier.looksLikeStudentID(contents)) {
-          UserDatabaseService.generateAndStoreVerificationCode(message.author)
+          UserDatabaseService.generateAndStoreVerificationCode(message.author, contents)
             .then(verificationCode => {
               return this.verifier.sendVerificationEmail(contents, message.author, verificationCode);
             })

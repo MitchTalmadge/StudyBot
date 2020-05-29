@@ -1,11 +1,13 @@
 // eslint-disable-next-line quotes
 import mongoose, { Document, Schema } from "mongoose";
 import { IMajorImplementDiscord } from "../discord/implement/major";
+import { IVerificationImplementDiscord } from "models/discord/implement/verification";
 
 export interface IGuildStorage extends Document {
   guildId: string;
 
   majorImplements: Map<string, IMajorImplementDiscord>
+  verificationImplement: IVerificationImplementDiscord;
 }
 
 export const GuildStorageSchema = new Schema({
@@ -30,7 +32,11 @@ export const GuildStorageSchema = new Schema({
     }),
     required: true,
     default: {}
-  }
+  },
+
+  verificationImplement: new Schema({
+    roleId: { type: Schema.Types.String, required: true, unique: true },
+  })
 });
 
 GuildStorageSchema.post("init", (_doc) => {

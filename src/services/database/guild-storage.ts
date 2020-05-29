@@ -5,6 +5,7 @@ import { GuildContext } from "guild-context";
 import { ICourseImplementDiscord } from "models/discord/implement/course";
 import { IMajorImplementDiscord } from "models/discord/implement/major";
 import { Major } from "models/major";
+import { IVerificationImplementDiscord } from "models/discord/implement/verification";
 
 export class GuildStorageDatabaseService {
   public static async findOrCreateGuildStorage(guildContext: GuildContext): Promise<IGuildStorage> {
@@ -23,7 +24,7 @@ export class GuildStorageDatabaseService {
     return storage;
   }
 
-  public static async getMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplementDiscord> {
+  public static async getMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplementDiscord | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorData = storage.majorImplements.get(major.prefix);
     return majorData;
@@ -40,7 +41,7 @@ export class GuildStorageDatabaseService {
     await storage.save();
   }
 
-  public static async getCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
+  public static async getCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorImplement = storage.majorImplements.get(course.major.prefix);
     if(!majorImplement)
@@ -61,6 +62,17 @@ export class GuildStorageDatabaseService {
     else
       majorImplement.courseImplements.delete(CourseUtils.convertToString(course));
 
+    await storage.save();
+  }
+
+  public static async getVerificationImplement(guildContext: GuildContext): Promise<IVerificationImplementDiscord | undefined> {
+    const storage = await this.findOrCreateGuildStorage(guildContext);
+    return storage.verificationImplement;
+  }
+
+  public static async setVerificationImplement(guildContext: GuildContext, implement: IVerificationImplementDiscord): Promise<void> {
+    const storage = await this.findOrCreateGuildStorage(guildContext);
+    storage.verificationImplement = implement;
     await storage.save();
   }
 }

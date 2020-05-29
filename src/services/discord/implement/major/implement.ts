@@ -24,7 +24,6 @@ export class MajorImplementDiscordService {
   }
 
   private static async createMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplementDiscord> {
-    // Delays are to avoid rate limits.
     await DiscordUtils.rateLimitAvoidance();
     const textCategoryId = (await MajorCategoryImplementDiscordService.createTextCategory(guildContext, major)).id;
     await DiscordUtils.rateLimitAvoidance();

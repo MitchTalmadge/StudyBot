@@ -5,7 +5,7 @@ import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { ICourseImplementDiscord } from "models/discord/implement/course";
-import { MajorImplementDiscordService } from "../major";
+import { MajorImplementDiscordService } from "../major/implement";
 import { UserDatabaseService } from "services/database/user";
 
 export class CourseImplementDiscordService {
