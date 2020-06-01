@@ -7,6 +7,8 @@ import { MajorMap } from "./models/major-map";
 import { VerificationChannelController } from "./controllers/channel/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 import _ from "lodash";
+import { CommandController } from "controllers/command/command-controller";
+import { DevCommandController } from "controllers/command/dev";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.
@@ -18,6 +20,8 @@ export class GuildContext {
   private courseSelectionController: CourseSelectionChannelController;
   
   private verificationController: VerificationChannelController;
+
+  private commandControllers: CommandController[] = [];
 
   /**
    * The list of allowed courses that users can be assigned to.
@@ -47,9 +51,12 @@ export class GuildContext {
   private initControllers(): void {
     this.courseSelectionController = new CourseSelectionChannelController(this);
     this.verificationController = new VerificationChannelController(this);
+
+    this.commandControllers.push(new DevCommandController(this));
   }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+    // Channel Controllers
     if (message.channel instanceof Discord.TextChannel) {
       if (message.channel.name === CourseSelectionChannelController.CHANNEL_NAME) {
         this.courseSelectionController.onMessageReceived(message);
@@ -57,6 +64,9 @@ export class GuildContext {
         this.verificationController.onMessageReceived(message);
       }
     }
+
+    // Command Controllers
+    this.commandControllers.forEach(commandController => commandController.onMessageReceived(message));
   }
 
   public guildLog(message: string, ...optionalParams: any): void {

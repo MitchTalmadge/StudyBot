@@ -68,18 +68,21 @@ export class RoleAssignmentDiscordService {
     // Courses
     for(let courses of Object.values(guildContext.courses)) {
       for(let course of courses) {
-        // If the user is assigned this course...
+        // If the user is assigned to this course...
         const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === CourseUtils.convertToString(course));
         if(assignment) {
+          // (User is assigned to course.)
           const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
           rolesToAdd.push(courseImplement.mainRoleId);
 
+          // Check TA status.
           if(assignment.isTA) {
             rolesToAdd.push(courseImplement.taRoleId);
           } else {
             rolesToRemove.push(courseImplement.taRoleId);
           }
         } else {
+          // (User is not assigned to course.)
           const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
           if(courseImplement) {
             rolesToRemove.push(courseImplement.mainRoleId);
