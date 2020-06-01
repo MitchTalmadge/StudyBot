@@ -60,7 +60,7 @@ export class UserDatabaseService {
       });
       await user.save();
     } else {
-      guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey))
+      guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey));
       await user.save();
     }
 

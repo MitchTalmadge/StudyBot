@@ -3,7 +3,6 @@ import { CommandController } from "./command-controller";
 import { DiscordUtils } from "utils/discord";
 
 export class DevCommandController extends CommandController {
-
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if(process.env.NODE_ENV !== "development") 
       return;
@@ -75,5 +74,4 @@ export class DevCommandController extends CommandController {
       }
     }
   }
-
 }

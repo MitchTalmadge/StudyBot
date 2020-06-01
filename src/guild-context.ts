@@ -1,14 +1,14 @@
 import * as Discord from "discord.js";
+import { CommandController } from "controllers/command/command-controller";
 import { Course } from "models/course";
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
 import { CourseService } from "./services/course";
+import { DevCommandController } from "controllers/command/dev";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
 import { VerificationChannelController } from "./controllers/channel/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 import _ from "lodash";
-import { CommandController } from "controllers/command/command-controller";
-import { DevCommandController } from "controllers/command/dev";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.

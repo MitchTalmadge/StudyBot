@@ -4,8 +4,8 @@ import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
 import { ICourseImplementDiscord } from "models/discord/implement/course";
 import { IMajorImplementDiscord } from "models/discord/implement/major";
-import { Major } from "models/major";
 import { IVerificationImplementDiscord } from "models/discord/implement/verification";
+import { Major } from "models/major";
 
 export class GuildStorageDatabaseService {
   public static async findOrCreateGuildStorage(guildContext: GuildContext): Promise<IGuildStorage> {

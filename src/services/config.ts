@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { Config } from "models/config";
-import { VerifierType } from "models/verifier-type.enum";
 import { RouteUtils } from "utils/route";
+import { VerifierType } from "models/verifier-type.enum";
 
 export class ConfigService {
   private static config: Config;

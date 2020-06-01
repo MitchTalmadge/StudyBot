@@ -1,11 +1,11 @@
 import * as Discord from "discord.js";
 import { ChannelController } from "./channel-controller";
 import { Course } from "models/course";
+import { CourseService } from "services/course";
 import { CourseUtils } from "utils/course";
 import { Major } from "models/major";
 import { UserDatabaseService } from "services/database/user";
 import _ from "lodash";
-import { CourseService } from "services/course";
 
 export class CourseSelectionChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "course-selector";
