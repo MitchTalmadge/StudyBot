@@ -1,3 +1,4 @@
+import * as Discord from "discord.js";
 import { timer } from "rxjs";
 
 export class DiscordUtils {
@@ -7,5 +8,14 @@ export class DiscordUtils {
    */
   public static async rateLimitAvoidance(delayMs = 750): Promise<void> {
     await timer(delayMs).toPromise();
+  }
+
+  /**
+   * Converts a user to a format which is useful when humans read the logs.
+   * Includes the user's ID and the username with discriminator.
+   * @param user The user to describe.
+   */
+  public static describeUserForLogs(user: Discord.User): string {
+    return `(${user.id} / ${user.username}#${user.discriminator})`;
   }
 }

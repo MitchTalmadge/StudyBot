@@ -1,10 +1,12 @@
 import * as Discord from "discord.js";
+import { Course } from "models/course";
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
 import { CourseService } from "./services/course";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
 import { VerificationChannelController } from "./controllers/channel/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
+import _ from "lodash";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.
@@ -17,29 +19,33 @@ export class GuildContext {
   
   private verificationController: VerificationChannelController;
 
+  /**
+   * The list of allowed courses that users can be assigned to.
+   * May be empty if the list could not be populated automatically.
+   */
+  public courses: { [majorPrefix: string]: Course[] };
+
   constructor(
     public guild: Discord.Guild,
     private guildConfig: GuildConfig,
     public majors: MajorMap) {
-    this.initServices();
+    this.guildLog("Initializing course lists...");
+    CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
+      .then(courses => this.courses = courses)
+      .catch(err => {
+        this.guildError("Failed to get course lists from the web catalog.");
+        console.error(err);
+
+        _.forIn(majors, major => {
+          this.courses[major.prefix] = [];
+        });
+      });
+
     this.initControllers();
   }
 
-  private initServices(): void {
-    this.courseService = new CourseService(
-      this,
-      new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog)
-    );
-    this.guildLog("Initializing course list...");
-    this.courseService.updateCourseLists();
-  }
-
   private initControllers(): void {
-    this.courseSelectionController = new CourseSelectionChannelController(
-      this,
-      this.courseService
-    );
-
+    this.courseSelectionController = new CourseSelectionChannelController(this);
     this.verificationController = new VerificationChannelController(this);
   }
 
@@ -53,11 +59,11 @@ export class GuildContext {
     }
   }
 
-  public guildLog(message: string): void {
-    console.log(`[G: ${this.guild.name}] ${message}`);
+  public guildLog(message: string, ...optionalParams: any): void {
+    console.log(`[G: ${this.guild.name}] ${message}`, ...optionalParams);
   }
 
-  public guildError(message: string): void {
-    console.error(`[G: ${this.guild.name}] ${message}`);
+  public guildError(message: string, ...optionalParams: any): void {
+    console.error(`[G: ${this.guild.name}] ${message}`, ...optionalParams);
   }
 }

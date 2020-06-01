@@ -44,7 +44,7 @@ export class UserDatabaseService {
       await user.save();
     }
 
-    return RoleAssignmentDiscordService.queueCourseRolesAddition(guildContext, discordMember, courses);
+    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -64,7 +64,7 @@ export class UserDatabaseService {
       await user.save();
     }
 
-    return RoleAssignmentDiscordService.queueCourseRolesRemoval(guildContext, discordMember, courses);
+    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -87,7 +87,7 @@ export class UserDatabaseService {
 
     await user.save();
 
-    return RoleAssignmentDiscordService.queueTARoleAssignments(guildContext, discordMember, taCourses, nonTACourses);
+    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async getUserByDiscordUserId(discordUserId: string): Promise<IUser> {
@@ -125,6 +125,6 @@ export class UserDatabaseService {
     user.verificationCode = undefined;
     await user.save();
 
-    return RoleAssignmentDiscordService.queueVerificationRoleAssignment(guildContext, discordMember);
+    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 }

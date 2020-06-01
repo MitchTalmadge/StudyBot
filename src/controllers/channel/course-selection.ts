@@ -1,21 +1,14 @@
 import * as Discord from "discord.js";
 import { ChannelController } from "./channel-controller";
 import { Course } from "models/course";
-import { CourseService } from "services/course";
 import { CourseUtils } from "utils/course";
-import { GuildContext } from "guild-context";
 import { Major } from "models/major";
 import { UserDatabaseService } from "services/database/user";
 import _ from "lodash";
+import { CourseService } from "services/course";
 
 export class CourseSelectionChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "course-selector";
-
-  constructor(guildContext: GuildContext,
-    private courseService: CourseService
-  ) { 
-    super(guildContext);
-  }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.content.toLowerCase().startsWith("join")) {
@@ -96,7 +89,7 @@ export class CourseSelectionChannelController extends ChannelController {
     }
 
     // Convert numbers to courses
-    return this.courseService.getCoursesFromNumberListsByMajor(numbers)
+    return CourseService.getCoursesFromNumberListsByMajor(this.guildContext, numbers)
       .catch(err => {
         console.error(`Failed to parse courses from ${action} request.`);
         console.error(err);

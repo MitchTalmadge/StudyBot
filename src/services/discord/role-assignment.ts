@@ -1,10 +1,13 @@
 import * as Discord from "discord.js";
+import { ConfigService } from "services/config";
 import { Course } from "models/course";
 import { CourseImplementDiscordService } from "./implement/course/implement";
+import { CourseUtils } from "utils/course";
 import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
+import { UserDatabaseService } from "services/database/user";
 import { VerificationImplementDiscordService } from "./implement/verification/implement";
-// TODO: Automatic role computation based on implements and user's own object.
+import { VerificationStatus } from "models/verification-status";
 export class RoleAssignmentDiscordService {
   private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
 
@@ -28,126 +31,77 @@ export class RoleAssignmentDiscordService {
   }
 
   /**
-   * Queues course role additions for a member.
+   * Queues role computation for a member, which will automatically determine and apply role changes.
    * @param guildContext The guild context.
    * @param discordMember The member whose roles to update.
    * @param courses The courses to add as roles.
    */
-  public static queueCourseRolesAddition(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
+  public static queueRoleComputation(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
     return this.queue(
       guildContext,
-      () => this.assignCourseRoles(guildContext, discordMember, courses, []))
+      () => this.computeAndApplyRoleChanges(guildContext, discordMember))
       .then(() => {
-        console.log("Roles assigned.");
+        guildContext.guildLog(`Roles updated for member ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
       })
       .catch(err => {
-        console.error(`Failed to assign roles to member ${discordMember.id}:`, err);
+        guildContext.guildError(`Failed to assign roles to member ${DiscordUtils.describeUserForLogs(discordMember.user)}:`, err);
       });
   }
 
-  /**
-   * Queues course role removals for a member.
-   * @param guildContext The guild context.
-   * @param discordMember The member whose roles to update.
-   * @param courses The courses to remove as roles.
-   */
-  public static queueCourseRolesRemoval(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    return this.queue(
-      guildContext,
-      () => this.assignCourseRoles(guildContext, discordMember, [], courses))
-      .then(() => {
-        console.log("Roles removed.");
-        // TODO: better logging
-      })
-      .catch(err => {
-        console.error(`Failed to remove roles from member ${discordMember.id}:`, err);
-        // TODO: better logging
-      });
-  }
+  private static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
+    const user = await UserDatabaseService.getUserByDiscordUserId(discordMember.id);
 
-  public static queueTARoleAssignments(guildContext: GuildContext, discordMember: Discord.GuildMember, taCourses: Course[], nonTACourses: Course[]): Promise<void> {
-    return this.queue(
-      guildContext,
-      () => this.assignTARoles(guildContext, discordMember, taCourses, nonTACourses))
-      .then(() => {
-        console.log("TA roles assigned.");
-        // TODO: better logging
-      })
-      .catch(err => {
-        console.error(`Failed to assign TA roles for member ${discordMember.id}:`, err);
-        // TODO: better logging
-      });
-  }
-
-  public static queueVerificationRoleAssignment(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    return this.queue(
-      guildContext,
-      () => this.assignVerificationRole(guildContext, discordMember))
-      .then(() => {
-        console.log("Verification role assigned.");
-        // TODO: better logging
-      })
-      .catch(err => {
-        console.error(`Failed to assign verification role for member ${discordMember.id}:`, err);
-        // TODO: better logging
-      });
-  }
-
-  private static async assignCourseRoles(guildContext: GuildContext, discordMember: Discord.GuildMember, coursesToAdd: Course[], coursesToRemove: Course[]): Promise<void> {
-    // Addition
-    let rolesToAdd: string[] = [];
-    for (let course of coursesToAdd) {
-      const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
-      rolesToAdd.push(courseImplement.mainRoleId);
-    }
-    if (rolesToAdd.length > 0)
-      discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment");
-
-    // Removal
-    let rolesToRemove: string[] = [];
-    for (let course of coursesToRemove) {
-      // Users can 
-      const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
-      if (courseImplement) {
-        rolesToRemove.push(courseImplement.mainRoleId);
-        // We also remove the TA role since a user cannot TA a course they are not in.
-        rolesToRemove.push(courseImplement.taRoleId);
+    const rolesToAdd: string[] = [];
+    const rolesToRemove: string[] = [];
+    const coursesToRemove: Course[] = [];
+    
+    // Verification 
+    if(ConfigService.getConfig().verification.enabled) {
+      const verificationImplement = await VerificationImplementDiscordService.getOrCreateVerificationImplement(guildContext);
+      if(user.verificationStatus === VerificationStatus.VERIFIED) {
+        rolesToAdd.push(verificationImplement.roleId);
+      } else {
+        rolesToRemove.push(verificationImplement.roleId);
       }
     }
-    if (rolesToRemove.length > 0) {
-      discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal");
 
-      // Check if nobody is in the course anymore.
+    // Courses
+    for(let courses of Object.values(guildContext.courses)) {
+      for(let course of courses) {
+        // If the user is assigned this course...
+        const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === CourseUtils.convertToString(course));
+        if(assignment) {
+          const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
+          rolesToAdd.push(courseImplement.mainRoleId);
+
+          if(assignment.isTA) {
+            rolesToAdd.push(courseImplement.taRoleId);
+          } else {
+            rolesToRemove.push(courseImplement.taRoleId);
+          }
+        } else {
+          const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
+          if(courseImplement) {
+            rolesToRemove.push(courseImplement.mainRoleId);
+            rolesToRemove.push(courseImplement.taRoleId);
+            coursesToRemove.push(course);
+          }
+        }
+      }
+    }
+
+    // Apply assignments.
+    if (rolesToAdd.length > 0)
+      discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment.");
+    if(rolesToAdd.length > 0 && rolesToRemove.length > 0)
+      await DiscordUtils.rateLimitAvoidance();  
+    if (rolesToRemove.length > 0) {
+      discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal.");
+    
+      // Delete implements of courses no longer used by anyone.
       for (let course of coursesToRemove) {
         await CourseImplementDiscordService.deleteCourseImplementIfEmpty(guildContext, course);
       }
     }
-  }
-
-  private static async assignTARoles(guildContext: GuildContext, discordMember: Discord.GuildMember, taCourses: Course[], nonTACourses: Course[]): Promise<void> {
-    // Addition
-    let rolesToAdd: string[] = [];
-    for (let course of taCourses) {
-      const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
-      rolesToAdd.push(courseImplement.taRoleId);
-    }
-    if (rolesToAdd.length > 0)
-      discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment");
-
-    // Removal
-    let rolesToRemove: string[] = [];
-    for (let course of nonTACourses) {
-      const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
-      if (courseImplement)
-        rolesToRemove.push(courseImplement.taRoleId);
-    }
-    if (rolesToRemove.length > 0) {
-      discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal");
-    }
-  }
-
-  private static async assignVerificationRole(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const verificationImplement = await VerificationImplementDiscordService.getOrCreateVerificationImplement(guildContext);
-    await discordMember.roles.add(verificationImplement.roleId, "StudyBot automatic role assignment");
   }
 }
