@@ -1,6 +1,6 @@
 import * as Discord from "discord.js";
-import { EmailService } from "../email";
 import { DiscordUtils } from "utils/discord";
+import { EmailService } from "../email";
 
 /**
  * This service provides business logic for verifying student IDs of Discord members.
