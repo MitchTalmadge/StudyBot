@@ -10,61 +10,63 @@ import _ from "lodash";
 export class CourseSelectionChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "course-selector";
 
-  public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+  // TODO: async-ify
+  public async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void> {
     if (message.content.toLowerCase().startsWith("join")) {
-      this.sendReply(message, "Request queued, please wait...");
+      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendReply(message, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            this.sendMessage(message.channel, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendReply(message, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
+            this.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(err => {
-          this.sendReply(message, `${err} Example usage: join cs1410 phys2210`);
+          this.sendMessage(message.channel, `${err} Example usage: join cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
-      this.sendReply(message, "Request queued, please wait...");
+      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "leave")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendReply(message, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            this.sendMessage(message.channel, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendReply(message, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
+            this.sendMessage(message.channel, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(err => {
-          this.sendReply(message, `${err} Example usage: leave cs1410 phys2210`);
+          this.sendMessage(message.channel, `${err} Example usage: leave cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
       // Join the courses just in case (also takes care of validation).
-      this.sendReply(message, "Request queued, please wait...");
+      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           return UserDatabaseService.toggleTAStatusForMember(this.guildContext, message.member, result.validCourses)
             .then(() => {
               if(result.invalidCourseNames.length > 0) {
-                this.sendReply(message, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+                this.sendMessage(message.channel, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
               } else {
-                this.sendReply(message, `Success! ${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}.`); 
+                this.sendMessage(message.channel, `Success! ${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}.`); 
               }
             });
         })
         .catch(err => {
-          this.sendReply(message, `${err} Example usage: ta cs1410 phys2210`);
+          this.sendMessage(message.channel, `${err} Example usage: ta cs1410 phys2210`);
           // TODO: Better example.
         });
     } else {
-      this.sendReply(message, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
+      this.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
     }
   }
 
+  // TODO: async-ify
   private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
     const separatorIndex = message.content.indexOf(" ");
     if(separatorIndex === -1) {
@@ -162,13 +164,5 @@ export class CourseSelectionChannelController extends ChannelController {
     }
 
     return true;
-  }
-
-  private sendReply(message: Discord.Message | Discord.PartialMessage, reply: string): void {
-    message.channel.send(reply)
-      .catch(err => {
-        console.error("Could not send course selection reply message.");
-        console.error(err);
-      });
   }
 }
