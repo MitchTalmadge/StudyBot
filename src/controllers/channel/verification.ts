@@ -1,13 +1,13 @@
 import * as Discord from "discord.js";
 import { ChannelController } from "./channel-controller";
 import { ConfigService } from "services/config";
+import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
+import { IUser } from "models/database/user";
 import { UserDatabaseService } from "services/database/user";
 import { VerificationStatus } from "models/verification-status";
 import { VerifierService } from "services/verification/verifier";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
-import { DiscordUtils } from "utils/discord";
-import { IUser } from "models/database/user";
 
 export class VerificationChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "get-verified";
