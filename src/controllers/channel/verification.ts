@@ -30,7 +30,7 @@ export class VerificationChannelController extends ChannelController {
 
     const contents = message.content.trim();
 
-    UserDatabaseService.getUserByDiscordUserId(message.author.id)
+    UserDatabaseService.findOrCreateUser(message.author.id)
       .then(user => {
         if(user) {
           if(user.verificationStatus === VerificationStatus.VERIFIED) {

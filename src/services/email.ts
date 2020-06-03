@@ -17,7 +17,7 @@ export class EmailService {
       from: `${smtpConfig.fromName} <${smtpConfig.fromAddress}>`
     });
 
-    console.log(`Sending email to <${to}> with subject '${subject}' and body:\n\n${body}`);
+    console.log(`Sending email to <${to}> with subject '${subject}'`);
 
     return transport.sendMail({
       to,

@@ -49,7 +49,7 @@ export class RoleAssignmentDiscordService {
   }
 
   private static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const user = await UserDatabaseService.getUserByDiscordUserId(discordMember.id);
+    const user = await UserDatabaseService.findOrCreateUser(discordMember.id, guildContext);
 
     const rolesToAdd: string[] = [];
     const rolesToRemove: string[] = [];

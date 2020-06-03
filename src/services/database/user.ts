@@ -10,7 +10,12 @@ import _ from "lodash";
 import moment from "moment";
 
 export class UserDatabaseService {
-  private static async findOrCreateUser(discordUserId: string): Promise<IUser> {
+  /**
+   * Finds a database User by a Discord User ID. Optionally initializes missing guild data.
+   * @param discordUserId The ID of the associated Discord User.
+   * @param guildContext The guild context. If provided, the User's guild data will be initialized if it is empty.
+   */
+  public static async findOrCreateUser(discordUserId: string, guildContext?: GuildContext): Promise<IUser> {
     let user = await User.findOne({ discordUserId: discordUserId }).exec();
     if (!user) {
       user = await new User(
@@ -19,11 +24,22 @@ export class UserDatabaseService {
         }).save();
     }
 
+    if(guildContext) {
+      if(!user.guilds.has(guildContext.guild.id)) {
+        user.guilds.set(guildContext.guild.id, {
+          courses: [],
+          coursesLastUpdated: moment()
+        });
+
+        user = await user.save();
+      }
+    }
+
     return user;
   }
 
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id);
+    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
 
     const serializedCourses: IUserCourseAssignment[] =
       courses.map(course =>
@@ -33,42 +49,26 @@ export class UserDatabaseService {
         });
 
     const guildData = user.guilds.get(guildContext.guild.id);
-    if (!guildData) {
-      user.guilds.set(guildContext.guild.id, {
-        courses: serializedCourses,
-        coursesLastUpdated: moment()
-      });
-      await user.save();
-    } else {
-      guildData.courses = _.union(guildData.courses, serializedCourses);
-      await user.save();
-    }
+    guildData.courses = _.union(guildData.courses, serializedCourses);
+    await user.save();
 
     return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id);
+    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
 
     const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
     const guildData = user.guilds.get(guildContext.guild.id);
-    if (!guildData) {
-      user.guilds.set(guildContext.guild.id, {
-        courses: [],
-        coursesLastUpdated: moment()
-      });
-      await user.save();
-    } else {
-      guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey));
-      await user.save();
-    }
+    guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey));
+    await user.save();
 
     return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id);
+    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
     
     const courseKeys = courses.map(course => CourseUtils.convertToString(course));
 
@@ -89,11 +89,7 @@ export class UserDatabaseService {
 
     return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
   }
-
-  public static async getUserByDiscordUserId(discordUserId: string): Promise<IUser> {
-    return await this.findOrCreateUser(discordUserId);
-  }
-
+  
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
     const key = `guilds.${guildContext.guild.id}.courses.courseKey`;
     const users = await User.find({ [key]: CourseUtils.convertToString(course) }).exec();

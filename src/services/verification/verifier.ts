@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { EmailService } from "../email";
+import { DiscordUtils } from "utils/discord";
 
 /**
  * This service provides business logic for verifying student IDs of Discord members.
@@ -16,6 +17,7 @@ export abstract class VerifierService {
   public abstract convertStudentIDToEmailAddress(studentId: string): string;
 
   public sendVerificationEmail(studentId: string, user: Discord.User, code: string): Promise<void> {
+    console.log(`Sending verification code ${code} to ${DiscordUtils.describeUserForLogs(user)} by email.`);
     return EmailService.sendEmail(this.convertStudentIDToEmailAddress(studentId),
       "Discord Verification",
       `Hey, ${user.username}#${user.discriminator}!\n\nTo complete verification, just type the following code into the verification channel: ${code}\n\n\n(If you did not expect this email, please disregard it. It's likely that someone accidentally typed your student ID instead of their own.)`
