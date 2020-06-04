@@ -11,6 +11,7 @@ import { VerifierServiceFactory } from "services/verification/verifier-factory";
 
 export class VerificationChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "get-verified";
+  private static readonly MESSAGE_DELAY = 30_000;
 
   private enabled: boolean;
 
@@ -40,27 +41,27 @@ export class VerificationChannelController extends ChannelController {
       user = await UserDatabaseService.findOrCreateUser(message.author.id);
     } catch(err) {
       this.guildContext.guildError(`Could not retrieve user object from DB while checking verification status for ${DiscordUtils.describeUserForLogs(message.author)}`, err);
-      this.sendMessage(message.channel, `Sorry, ${message.author}, there was an error while checking your verification status. Please try again or ask an admin for help!`);
+      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry, ${message.author}, there was an error while checking your verification status. Please try again or ask an admin for help!`);
       return;
     }
 
     if(user) {
       switch(user.verificationStatus) {
         case VerificationStatus.VERIFIED:
-          await this.sendMessage(message.channel, `${message.author}, you are already verified!`);
+          await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `${message.author}, you are already verified!`);
           return;
         case VerificationStatus.CODE_SENT:
           // Check if the user has input a code.
           if(contents.trim() === user.verificationCode) {
             // Code matches.
-            await this.sendMessage(message.channel, `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
+            await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
             UserDatabaseService.setUserVerified(this.guildContext, message.member)
               .catch(err => {
                 console.error(`Could not set user with ID ${message.author.id} as verified`, err);
-                this.sendMessage(message.channel, `Oops! Sorry ${message.author}, there was an error while giving you the verified role. Please ask an admin for help!`);
+                this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, there was an error while giving you the verified role. Please ask an admin for help!`);
               });
           } else {
-            await this.sendMessage(message.channel, `Sorry ${message.author}, that code does not look correct. Try again, or ask an admin if you need a new email sent out.`);
+            await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, that code does not look correct. Try again, or ask an admin if you need a new email sent out.`);
             // TODO: Allow user to try new student ID? (Typo)
           }
           return;
@@ -71,12 +72,12 @@ export class VerificationChannelController extends ChannelController {
 
     // Check if the input is a student ID.
     if(!this.verifier.looksLikeStudentID(contents)) {
-      await this.sendMessage(message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`)
+      await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`)
       return;
     }
 
     // The user has put in their student ID.
-    await this.sendMessage(message.channel, `Ok, ${message.author}, just one more step. I am sending a secret code to your student email address. Just find and type the code here to become verified! Remember to check your spam.`);
+    await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a secret code to your student email address. Just find and type the code here to become verified! Remember to check your spam.`);
     
     // Obtain a verification code.
     let verificationCode: string;
@@ -84,7 +85,7 @@ export class VerificationChannelController extends ChannelController {
       verificationCode = await UserDatabaseService.generateAndStoreVerificationCode(message.author, contents);
     } catch (err) {
       this.guildContext.guildError("Failed to generate verification code:", err);
-      this.sendMessage(message.channel, `Oops! Sorry ${message.author}, something went wrong while I was generating your code. Please try again or ask an admin for help!`);
+      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong while I was generating your code. Please try again or ask an admin for help!`);
       return;
     }
 
@@ -93,7 +94,7 @@ export class VerificationChannelController extends ChannelController {
       await this.verifier.sendVerificationEmail(contents, message.author, verificationCode);
     } catch (err) {
       this.guildContext.guildError("Failed to send verification email:", err);
-      this.sendMessage(message.channel, `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
+      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
       return;
     }
   }
