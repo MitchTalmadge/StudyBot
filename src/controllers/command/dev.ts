@@ -27,6 +27,7 @@ export class DevCommandController extends CommandController {
             message.reply("something went wrong during reset. Check the logs.");
             this.guildContext.guildError("Could not reset guild:", err);
           });
+        break;
       case "wipechannel":
         if (message.channel.type === "text") {
           this.wipeTextChannel(message.channel)
@@ -35,6 +36,7 @@ export class DevCommandController extends CommandController {
               this,this.guildContext.guildError("Could not wipe channel:", err);
             });
         }
+        break;
     }
   }
 
