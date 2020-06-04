@@ -95,8 +95,6 @@ export class CourseSelectionChannelController extends ChannelController {
         return Promise.reject(`${message.author}, sorry, something went wrong while I was trying to read your message. Try again or ask an admin for help!`);
       })
       .then(result => {
-        this.sendMessage(message.channel, `${message.author}, your request has been queued!`);
-
         // Remove invalid courses and keep track of them to show the user.
         const allValidCourses: Course[] = [];
         const allInvalidCourseNames: string[] = [];
@@ -105,6 +103,12 @@ export class CourseSelectionChannelController extends ChannelController {
           allValidCourses.push(...courses.validCourses);
           allInvalidCourseNames.push(...courses.invalidCourseNames);
         });
+
+        if (allValidCourses.length === 0) {
+          return Promise.reject(`Sorry ${message.author}, none of the courses you specified appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`);
+        }
+
+        this.sendMessage(message.channel, `${message.author}, your request has been queued!`);
 
         // Add all courses to member.
         return Promise.resolve()
@@ -120,10 +124,6 @@ export class CourseSelectionChannelController extends ChannelController {
             return Promise.reject(`Sorry ${message.author}, something internal went wrong when I tried to assign your courses. Try again or ask an admin for help!`);
           })
           .then(() => {
-            if (allValidCourses.length === 0) {
-              return Promise.reject(`Sorry ${message.author}, none of the courses you specified appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`);
-            }
-
             return { validCourses: allValidCourses, invalidCourseNames: allInvalidCourseNames };
           });          
       });
