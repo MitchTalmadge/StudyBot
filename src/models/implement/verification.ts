@@ -1,6 +1,6 @@
 /**
  * Discord implementation of the verification system.
  */
-export interface IVerificationImplementDiscord {
+export interface IVerificationImplement {
   roleId: string;
 }

@@ -2,7 +2,7 @@ import * as Discord from "discord.js";
 import { GuildContext } from "guild-context";
 import { VerificationUtils } from "utils/verification";
 
-export class VerificationRoleImplementDiscordService {
+export class VerificationRoleImplementService {
   public static async createRole(guildContext: GuildContext): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {

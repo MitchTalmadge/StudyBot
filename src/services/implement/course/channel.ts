@@ -3,7 +3,7 @@ import { Course } from "models/course";
 import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
 
-export class CourseChannelImplementDiscordService {
+export class CourseChannelImplementService {
   public static async createMainChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.TextChannel> {
     const channel = await guildContext.guild.channels.create(
       CourseUtils.getMainChannelName(course),

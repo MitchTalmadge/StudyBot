@@ -3,7 +3,7 @@ import { GuildContext } from "guild-context";
 import { Major } from "models/major";
 import { MajorUtils } from "utils/major";
 
-export class MajorCategoryImplementDiscordService {
+export class MajorCategoryImplementService {
   public static async createTextCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
     const category = await guildContext.guild.channels.create(
       MajorUtils.getTextCategoryName(major),

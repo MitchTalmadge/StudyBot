@@ -1,12 +1,12 @@
 import * as Discord from "discord.js";
 import { ConfigService } from "services/config";
 import { Course } from "models/course";
-import { CourseImplementDiscordService } from "./implement/course/implement";
+import { CourseImplementService } from "../implement/course/implement";
 import { CourseUtils } from "utils/course";
 import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 import { UserDatabaseService } from "services/database/user";
-import { VerificationImplementDiscordService } from "./implement/verification/implement";
+import { VerificationImplementService } from "../implement/verification/implement";
 import { VerificationStatus } from "models/verification-status";
 export class RoleAssignmentDiscordService {
   private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
@@ -57,7 +57,7 @@ export class RoleAssignmentDiscordService {
     
     // Verification 
     if(ConfigService.getConfig().verification.enabled) {
-      const verificationImplement = await VerificationImplementDiscordService.getOrCreateVerificationImplement(guildContext);
+      const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
       if(user.verificationStatus === VerificationStatus.VERIFIED) {
         rolesToAdd.push(verificationImplement.roleId);
       } else {
@@ -72,7 +72,7 @@ export class RoleAssignmentDiscordService {
         const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === CourseUtils.convertToString(course));
         if(assignment) {
           // (User is assigned to course.)
-          const courseImplement = await CourseImplementDiscordService.getOrCreateCourseImplement(guildContext, course);
+          const courseImplement = await CourseImplementService.getOrCreateCourseImplement(guildContext, course);
           rolesToAdd.push(courseImplement.mainRoleId);
 
           // Check TA status.
@@ -83,7 +83,7 @@ export class RoleAssignmentDiscordService {
           }
         } else {
           // (User is not assigned to course.)
-          const courseImplement = await CourseImplementDiscordService.getCourseImplementIfExists(guildContext, course);
+          const courseImplement = await CourseImplementService.getCourseImplementIfExists(guildContext, course);
           if(courseImplement) {
             rolesToRemove.push(courseImplement.mainRoleId);
             rolesToRemove.push(courseImplement.taRoleId);
@@ -103,7 +103,7 @@ export class RoleAssignmentDiscordService {
     
       // Delete implements of courses no longer used by anyone.
       for (let course of coursesToRemove) {
-        await CourseImplementDiscordService.deleteCourseImplementIfEmpty(guildContext, course);
+        await CourseImplementService.deleteCourseImplementIfEmpty(guildContext, course);
       }
     }
   }

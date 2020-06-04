@@ -2,9 +2,9 @@ import { GuildStorage, IGuildStorage } from "models/database/guild-storage";
 import { Course } from "models/course";
 import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
-import { ICourseImplementDiscord } from "models/discord/implement/course";
-import { IMajorImplementDiscord } from "models/discord/implement/major";
-import { IVerificationImplementDiscord } from "models/discord/implement/verification";
+import { ICourseImplement } from "models/implement/course";
+import { IMajorImplement } from "models/implement/major";
+import { IVerificationImplement } from "models/implement/verification";
 import { Major } from "models/major";
 
 export class GuildStorageDatabaseService {
@@ -24,13 +24,13 @@ export class GuildStorageDatabaseService {
     return storage;
   }
 
-  public static async getMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplementDiscord | undefined> {
+  public static async getMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorData = storage.majorImplements.get(major.prefix);
     return majorData;
   }
 
-  public static async setMajorImplement(guildContext: GuildContext, major: Major, implement: IMajorImplementDiscord): Promise<void> {
+  public static async setMajorImplement(guildContext: GuildContext, major: Major, implement: IMajorImplement): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
 
     if(implement)
@@ -41,7 +41,7 @@ export class GuildStorageDatabaseService {
     await storage.save();
   }
 
-  public static async getCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord | undefined> {
+  public static async getCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorImplement = storage.majorImplements.get(course.major.prefix);
     if(!majorImplement)
@@ -49,7 +49,7 @@ export class GuildStorageDatabaseService {
     return majorImplement.courseImplements.get(CourseUtils.convertToString(course));
   }
 
-  public static async setCourseImplement(guildContext: GuildContext, course: Course, implement: ICourseImplementDiscord): Promise<void> {
+  public static async setCourseImplement(guildContext: GuildContext, course: Course, implement: ICourseImplement): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorImplement = storage.majorImplements.get(course.major.prefix);
     if(!majorImplement) {
@@ -65,12 +65,12 @@ export class GuildStorageDatabaseService {
     await storage.save();
   }
 
-  public static async getVerificationImplement(guildContext: GuildContext): Promise<IVerificationImplementDiscord | undefined> {
+  public static async getVerificationImplement(guildContext: GuildContext): Promise<IVerificationImplement | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     return storage.verificationImplement;
   }
 
-  public static async setVerificationImplement(guildContext: GuildContext, implement: IVerificationImplementDiscord): Promise<void> {
+  public static async setVerificationImplement(guildContext: GuildContext, implement: IVerificationImplement): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     storage.verificationImplement = implement;
     await storage.save();

@@ -3,7 +3,7 @@ import { Course } from "models/course";
 import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
 
-export class CourseRoleImplementDiscordService {
+export class CourseRoleImplementService {
   public static async createMainRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {

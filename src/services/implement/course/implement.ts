@@ -1,16 +1,16 @@
 import { Course } from "models/course";
-import { CourseChannelImplementDiscordService } from "./channel";
-import { CourseRoleImplementDiscordService } from "./role";
+import { CourseChannelImplementService } from "./channel";
+import { CourseRoleImplementService } from "./role";
 import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 import { GuildStorageDatabaseService } from "services/database/guild-storage";
-import { ICourseImplementDiscord } from "models/discord/implement/course";
-import { MajorImplementDiscordService } from "../major/implement";
+import { ICourseImplement } from "models/implement/course";
+import { MajorImplementService } from "../major/implement";
 import { UserDatabaseService } from "services/database/user";
-import { VerificationImplementDiscordService } from "../verification/implement";
+import { VerificationImplementService } from "../verification/implement";
 
-export class CourseImplementDiscordService {
-  public static async getOrCreateCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
+export class CourseImplementService {
+  public static async getOrCreateCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
     const implement = await this.getCourseImplementIfExists(guildContext, course);
     if(implement) {
       return implement;
@@ -18,7 +18,7 @@ export class CourseImplementDiscordService {
     return await this.createCourseImplement(guildContext, course);
   }
 
-  public static async getCourseImplementIfExists(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord | undefined> {
+  public static async getCourseImplementIfExists(guildContext: GuildContext, course: Course): Promise<ICourseImplement | undefined> {
     const implement = await GuildStorageDatabaseService.getCourseImplement(guildContext, course);
     if(implement) {
       return implement;
@@ -26,19 +26,19 @@ export class CourseImplementDiscordService {
     return undefined;
   }
 
-  private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplementDiscord> {
-    const majorImplement = await MajorImplementDiscordService.getOrCreateMajorImplement(guildContext, course.major);
-    const verificationImplement = await VerificationImplementDiscordService.getOrCreateVerificationImplement(guildContext);
+  private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
+    const majorImplement = await MajorImplementService.getOrCreateMajorImplement(guildContext, course.major);
+    const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
     
     // Delays are to avoid rate limits.
     await DiscordUtils.rateLimitAvoidance();
-    const mainRoleId = (await CourseRoleImplementDiscordService.createMainRole(guildContext, course)).id;
+    const mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const taRoleId = (await CourseRoleImplementDiscordService.createTARole(guildContext, course)).id;
+    const taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const mainChannelId = (await CourseChannelImplementDiscordService.createMainChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const mainChannelId = (await CourseChannelImplementService.createMainChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const voiceChannelId = (await CourseChannelImplementDiscordService.createVoiceChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const voiceChannelId = (await CourseChannelImplementService.createVoiceChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
 
     const implement = {
       mainRoleId,
@@ -72,7 +72,7 @@ export class CourseImplementDiscordService {
     await guildContext.guild.roles.resolve(implement.taRoleId).delete();
 
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
-    await MajorImplementDiscordService.deleteMajorImplementIfEmpty(guildContext, course.major);
+    await MajorImplementService.deleteMajorImplementIfEmpty(guildContext, course.major);
   }
 
   // TODO: Repair implement
