@@ -8,7 +8,7 @@ import { GuildContext } from "guild-context";
 import { UserDatabaseService } from "services/database/user";
 import { VerificationImplementService } from "../implement/verification/implement";
 import { VerificationStatus } from "models/verification-status";
-export class RoleAssignmentDiscordService {
+export class DiscordRoleAssignmentService {
   private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
 
   /**

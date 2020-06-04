@@ -2,8 +2,8 @@ import * as Discord from "discord.js";
 import { IUser, IUserCourseAssignment, User } from "models/database/user";
 import { Course } from "models/course";
 import { CourseUtils } from "utils/course";
+import { DiscordRoleAssignmentService } from "../discord/role-assignment";
 import { GuildContext } from "guild-context";
-import { RoleAssignmentDiscordService } from "../discord/role-assignment";
 import { VerificationStatus } from "models/verification-status";
 import { VerificationUtils } from "utils/verification";
 import _ from "lodash";
@@ -52,7 +52,7 @@ export class UserDatabaseService {
     guildData.courses = _.union(guildData.courses, serializedCourses);
     await user.save();
 
-    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
+    return DiscordRoleAssignmentService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async removeCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -64,7 +64,7 @@ export class UserDatabaseService {
     guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey));
     await user.save();
 
-    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
+    return DiscordRoleAssignmentService.queueRoleComputation(guildContext, discordMember);
   }
 
   public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -87,7 +87,7 @@ export class UserDatabaseService {
 
     await user.save();
 
-    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
+    return DiscordRoleAssignmentService.queueRoleComputation(guildContext, discordMember);
   }
   
   public static async getUsersByCourse(guildContext: GuildContext, course: Course): Promise<IUser[]> {
@@ -121,6 +121,6 @@ export class UserDatabaseService {
     user.verificationCode = undefined;
     await user.save();
 
-    return RoleAssignmentDiscordService.queueRoleComputation(guildContext, discordMember);
+    return DiscordRoleAssignmentService.queueRoleComputation(guildContext, discordMember);
   }
 }
