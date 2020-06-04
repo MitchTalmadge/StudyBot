@@ -11,7 +11,7 @@ export class CourseChannelImplementService {
         type: "text",
         topic: `:information_source: ${course.title}`,
         parent: categoryId,
-        position: 1,
+        position: 0,
         permissionOverwrites: [
           {
             type: "role",
@@ -43,13 +43,13 @@ export class CourseChannelImplementService {
     return channel;
   }
 
-  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.VoiceChannel> {
+  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.VoiceChannel> {  
     const channel = await guildContext.guild.channels.create(
       CourseUtils.getVoiceChannelName(course),
       {
         type: "voice",
         parent: categoryId,
-        position: 1,
+        position: 0,
         permissionOverwrites: [
           {
             type: "role",
@@ -79,5 +79,5 @@ export class CourseChannelImplementService {
     );
 
     return channel;
-  }  
+  }
 }

@@ -44,7 +44,8 @@ export class DiscordRoleAssignmentService {
         guildContext.guildLog(`Roles updated for member ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
       })
       .catch(err => {
-        guildContext.guildError(`Failed to assign roles to member ${DiscordUtils.describeUserForLogs(discordMember.user)}:`, err);
+        guildContext.guildError(`Failed to assign roles to member ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
+        return Promise.reject(err);
       });
   }
 

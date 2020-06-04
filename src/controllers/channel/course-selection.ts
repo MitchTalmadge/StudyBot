@@ -22,8 +22,8 @@ export class CourseSelectionChannelController extends ChannelController {
             this.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
-        .catch(err => {
-          this.sendMessage(message.channel, `${err} Example usage: join cs1410 phys2210`);
+        .catch(errorMessage => {
+          this.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
@@ -36,8 +36,8 @@ export class CourseSelectionChannelController extends ChannelController {
             this.sendMessage(message.channel, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
-        .catch(err => {
-          this.sendMessage(message.channel, `${err} Example usage: leave cs1410 phys2210`);
+        .catch(errorMessage => {
+          this.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
@@ -54,8 +54,8 @@ export class CourseSelectionChannelController extends ChannelController {
               }
             });
         })
-        .catch(err => {
-          this.sendMessage(message.channel, `${err} Example usage: ta cs1410 phys2210`);
+        .catch(errorMessage => {
+          this.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410 phys2210`);
           // TODO: Better example.
         });
     } else {
@@ -90,8 +90,7 @@ export class CourseSelectionChannelController extends ChannelController {
     // Convert numbers to courses
     return CourseService.getCoursesFromNumberListsByMajor(this.guildContext, numbers)
       .catch(err => {
-        console.error(`Failed to parse courses from ${action} request.`);
-        console.error(err);
+        this.guildContext.guildError(`Failed to parse courses from ${action} request:`, err);
         return Promise.reject(`${message.author}, sorry, something went wrong while I was trying to read your message. Try again or ask an admin for help!`);
       })
       .then(result => {
@@ -119,8 +118,7 @@ export class CourseSelectionChannelController extends ChannelController {
               return UserDatabaseService.removeCoursesFromMember(this.guildContext, message.member, allValidCourses);
           })
           .catch(err => {
-            console.error(`Failed to set courses for member during ${action} request.`);
-            console.error(err);
+            this.guildContext.guildError(`Failed to set courses for member during ${action} request:`, err);
             return Promise.reject(`Sorry ${message.author}, something internal went wrong when I tried to assign your courses. Try again or ask an admin for help!`);
           })
           .then(() => {

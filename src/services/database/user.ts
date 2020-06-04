@@ -49,7 +49,7 @@ export class UserDatabaseService {
         });
 
     const guildData = user.guilds.get(guildContext.guild.id);
-    guildData.courses = _.union(guildData.courses, serializedCourses);
+    guildData.courses = _.unionBy(guildData.courses, serializedCourses, course => course.courseKey);
     await user.save();
 
     return DiscordRoleAssignmentService.queueRoleComputation(guildContext, discordMember);

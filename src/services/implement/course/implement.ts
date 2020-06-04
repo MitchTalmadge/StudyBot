@@ -48,6 +48,7 @@ export class CourseImplementService {
     };
 
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
+    await MajorImplementService.sortMajorImplement(guildContext, course.major);
     return implement;
   }
 
