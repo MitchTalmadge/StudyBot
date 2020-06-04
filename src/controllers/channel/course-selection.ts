@@ -13,7 +13,6 @@ export class CourseSelectionChannelController extends ChannelController {
   // TODO: async-ify
   public async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void> {
     if (message.content.toLowerCase().startsWith("join")) {
-      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
@@ -28,7 +27,6 @@ export class CourseSelectionChannelController extends ChannelController {
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
-      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "leave")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
@@ -44,7 +42,6 @@ export class CourseSelectionChannelController extends ChannelController {
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
       // Join the courses just in case (also takes care of validation).
-      this.sendMessage(message.channel, "Request queued, please wait...");
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
@@ -98,6 +95,8 @@ export class CourseSelectionChannelController extends ChannelController {
         return Promise.reject(`${message.author}, sorry, something went wrong while I was trying to read your message. Try again or ask an admin for help!`);
       })
       .then(result => {
+        this.sendMessage(message.channel, `${message.author}, your request has been queued!`);
+
         // Remove invalid courses and keep track of them to show the user.
         const allValidCourses: Course[] = [];
         const allInvalidCourseNames: string[] = [];
