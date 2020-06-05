@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { ChannelController } from "./channel-controller";
 import { ConfigService } from "services/config";
+import { DiscordMessageUtils } from "utils/discord-message";
 import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 import { IUser } from "models/database/user";
@@ -11,6 +12,7 @@ import { VerifierServiceFactory } from "services/verification/verifier-factory";
 
 export class VerificationChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "get-verified";
+  
   private static readonly MESSAGE_DELAY = 30_000;
 
   private enabled: boolean;
@@ -32,7 +34,7 @@ export class VerificationChannelController extends ChannelController {
     }
 
     // Remove the user's message immediately for privacy since they often contain student IDs.
-    await this.purgeMessage(message);
+    await DiscordMessageUtils.purgeMessage(message);
 
     const contents = message.content.trim();
 
@@ -41,27 +43,27 @@ export class VerificationChannelController extends ChannelController {
       user = await UserDatabaseService.findOrCreateUser(message.author.id);
     } catch(err) {
       this.guildContext.guildError(`Could not retrieve user object from DB while checking verification status for ${DiscordUtils.describeUserForLogs(message.author)}`, err);
-      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry, ${message.author}, there was an error while checking your verification status. Please try again or ask an admin for help!`);
+      DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry, ${message.author}, there was an error while checking your verification status. Please try again or ask an admin for help!`);
       return;
     }
 
     if(user) {
       switch(user.verificationStatus) {
         case VerificationStatus.VERIFIED:
-          await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `${message.author}, you are already verified!`);
+          await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `${message.author}, you are already verified!`);
           return;
         case VerificationStatus.CODE_SENT:
           // Check if the user has input a code.
           if(contents.trim() === user.verificationCode) {
             // Code matches.
-            await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
+            await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
             UserDatabaseService.setUserVerified(this.guildContext, message.member)
               .catch(err => {
                 console.error(`Could not set user with ID ${message.author.id} as verified`, err);
-                this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, there was an error while giving you the verified role. Please ask an admin for help!`);
+                DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, there was an error while giving you the verified role. Please ask an admin for help!`);
               });
           } else {
-            await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, that code does not look correct. Try again, or ask an admin if you need a new email sent out.`);
+            await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, that code does not look correct. Try again, or ask an admin if you need a new email sent out.`);
             // TODO: Allow user to try new student ID? (Typo)
           }
           return;
@@ -72,12 +74,12 @@ export class VerificationChannelController extends ChannelController {
 
     // Check if the input is a student ID.
     if(!this.verifier.looksLikeStudentID(contents)) {
-      await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`)
+      await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`)
       return;
     }
 
     // The user has put in their student ID.
-    await this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a secret code to your student email address. Just find and type the code here to become verified! Remember to check your spam.`);
+    await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a secret code to your student email address. Just find and type the code here to become verified! Remember to check your spam.`);
     
     // Obtain a verification code.
     let verificationCode: string;
@@ -85,7 +87,7 @@ export class VerificationChannelController extends ChannelController {
       verificationCode = await UserDatabaseService.generateAndStoreVerificationCode(message.author, contents);
     } catch (err) {
       this.guildContext.guildError("Failed to generate verification code:", err);
-      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong while I was generating your code. Please try again or ask an admin for help!`);
+      DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong while I was generating your code. Please try again or ask an admin for help!`);
       return;
     }
 
@@ -94,7 +96,7 @@ export class VerificationChannelController extends ChannelController {
       await this.verifier.sendVerificationEmail(contents, message.author, verificationCode);
     } catch (err) {
       this.guildContext.guildError("Failed to send verification email:", err);
-      this.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
+      DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
       return;
     }
   }

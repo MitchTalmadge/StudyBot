@@ -3,6 +3,7 @@ import { ChannelController } from "./channel-controller";
 import { Course } from "models/course";
 import { CourseService } from "services/course";
 import { CourseUtils } from "utils/course";
+import { DiscordMessageUtils } from "utils/discord-message";
 import { Major } from "models/major";
 import { UserDatabaseService } from "services/database/user";
 import _ from "lodash";
@@ -17,13 +18,13 @@ export class CourseSelectionChannelController extends ChannelController {
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendMessage(message.channel, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
+            DiscordMessageUtils.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(errorMessage => {
-          this.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410 phys2210`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
@@ -31,13 +32,13 @@ export class CourseSelectionChannelController extends ChannelController {
         .then(result => {
           const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
           if(result.invalidCourseNames.length > 0) {
-            this.sendMessage(message.channel, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+            DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
-            this.sendMessage(message.channel, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
+            DiscordMessageUtils.sendMessage(message.channel, `Success! ${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}.`); 
           }
         })
         .catch(errorMessage => {
-          this.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410 phys2210`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410 phys2210`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
@@ -48,18 +49,18 @@ export class CourseSelectionChannelController extends ChannelController {
           return UserDatabaseService.toggleTAStatusForMember(this.guildContext, message.member, result.validCourses)
             .then(() => {
               if(result.invalidCourseNames.length > 0) {
-                this.sendMessage(message.channel, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
+                DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
               } else {
-                this.sendMessage(message.channel, `Success! ${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}.`); 
+                DiscordMessageUtils.sendMessage(message.channel, `Success! ${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}.`); 
               }
             });
         })
         .catch(errorMessage => {
-          this.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410 phys2210`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410 phys2210`);
           // TODO: Better example.
         });
     } else {
-      this.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
+      DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 phys2420'`);
     }
   }
 
@@ -107,7 +108,7 @@ export class CourseSelectionChannelController extends ChannelController {
           return Promise.reject(`Sorry ${message.author}, none of the courses you specified appear to be valid: ${allInvalidCourseNames.join(", ")}. If you think this is a mistake, ask an admin for help!`);
         }
 
-        this.sendMessage(message.channel, `${message.author}, your request has been queued!`);
+        DiscordMessageUtils.sendMessage(message.channel, `${message.author}, your request has been queued!`);
 
         // Add all courses to member.
         return Promise.resolve()
