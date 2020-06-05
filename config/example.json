@@ -31,11 +31,13 @@
   "guilds": {
     "28357239856723895": {
       "majors": ["cs"],
-      "webCatalog": "utah"
+      "webCatalog": "utah",
+      "moderatorRoleName": "moderator"
     },
     "89233498652365349": {
       "majors": ["phys", "chem"],
-      "webCatalog": null
+      "webCatalog": null,
+      "moderatorRoleName": "moderator"
     }
   },
 

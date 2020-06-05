@@ -6,6 +6,7 @@ import { CourseService } from "./services/course";
 import { DevCommandController } from "controllers/command/dev";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
+import { ModeratorCommandController } from "controllers/command/moderator";
 import { VerificationChannelController } from "./controllers/channel/verification";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 import _ from "lodash";
@@ -53,6 +54,7 @@ export class GuildContext {
     this.verificationController = new VerificationChannelController(this);
 
     this.commandControllers.push(new DevCommandController(this));
+    this.commandControllers.push(new ModeratorCommandController(this));
   }
 
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
