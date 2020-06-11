@@ -3,14 +3,10 @@
     "description": "A Discord bot for servers that focus on particular university majors.",
     "authors": "Mitch Talmadge <MitchTalmadge>",
     "version": "1.0.0",
-    "main": "./dist/main.js",
     "scripts": {
-        "clean": "rimraf dist",
-        "predebug": "npm run clean",
         "debug": "nodemon ./src/main.ts",
         "debug:mongo": "nodemon ./src/dev/init.ts",
-        "prebuild": "npm run clean",
-        "build": "tsc"
+        "start": "node -r tsconfig-paths/register -r ts-node/register ./src/main.ts"
     },
     "nodemonConfig": {
         "delay": 1000,
