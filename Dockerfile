@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Build
 RUN npm install
-RUN npm build
+RUN npm run build
 
 # Start
 ENTRYPOINT [ "npm", "start" ]
