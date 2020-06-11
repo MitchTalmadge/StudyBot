@@ -11,5 +11,3 @@ jobs:
       - uses: actions/setup-node@v1.1.0
       - name: Install Dependencies
         run: npm install
-      - name: Build
-        run: npm run build
