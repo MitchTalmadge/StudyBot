@@ -4,3 +4,5 @@
 [![GitHub issues](https://img.shields.io/github/issues/MitchTalmadge/StudyBot.svg)](https://github.com/MitchTalmadge/StudyBot/issues)
 
 A Discord bot for servers that focus on particular university majors.
+
+[Information on setup, development, contribution, and more can be found in the wiki!](https://github.com/MitchTalmadge/StudyBot/wiki)
