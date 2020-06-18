@@ -36,9 +36,9 @@ export class CourseImplementService {
     await DiscordUtils.rateLimitAvoidance();
     const taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const mainChannelId = (await CourseChannelImplementService.createMainChannel(guildContext, course, majorImplement.textCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const mainChannelId = (await CourseChannelImplementService.createMainChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
     await DiscordUtils.rateLimitAvoidance();
-    const voiceChannelId = (await CourseChannelImplementService.createVoiceChannel(guildContext, course, majorImplement.voiceCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const voiceChannelId = (await CourseChannelImplementService.createVoiceChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
 
     const implement = {
       mainRoleId,

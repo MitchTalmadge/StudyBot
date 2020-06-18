@@ -50,7 +50,7 @@ export class DevCommandController extends CommandController {
     // Very rudementary auto-deletion of categories and their children.
     for (let cacheMeta of this.guildContext.guild.channels.cache) {
       const channel = cacheMeta[1];
-      if ((channel.name.endsWith("-chat") || channel.name.endsWith("-voice")) && channel.type === "category") {
+      if ((channel.name.endsWith("-courses")) && channel.type === "category") {
         const category: Discord.CategoryChannel = <Discord.CategoryChannel>channel;
         for (let childCacheMeta of category.children) {
           const childChannel = childCacheMeta[1];

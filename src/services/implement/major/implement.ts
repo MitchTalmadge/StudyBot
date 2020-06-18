@@ -26,13 +26,10 @@ export class MajorImplementService {
 
   private static async createMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement> {
     await DiscordUtils.rateLimitAvoidance();
-    const textCategoryId = (await MajorCategoryImplementService.createTextCategory(guildContext, major)).id;
-    await DiscordUtils.rateLimitAvoidance();
-    const voiceCategoryId = (await MajorCategoryImplementService.createVoiceCategory(guildContext, major)).id;
+    const categoryId = (await MajorCategoryImplementService.createCategory(guildContext, major)).id;
 
     const implement: IMajorImplement = {
-      textCategoryId,
-      voiceCategoryId,
+      categoryId,
       courseImplements: new Map<string, ICourseImplement>()
     };
 
@@ -52,9 +49,7 @@ export class MajorImplementService {
 
     // Delays are to avoid rate limits.
     await DiscordUtils.rateLimitAvoidance();
-    await guildContext.guild.channels.resolve(implement.textCategoryId).delete();
-    await DiscordUtils.rateLimitAvoidance();
-    await guildContext.guild.channels.resolve(implement.voiceCategoryId).delete();
+    await guildContext.guild.channels.resolve(implement.categoryId).delete();
 
     await GuildStorageDatabaseService.setMajorImplement(guildContext, major, undefined);
   }
@@ -72,12 +67,10 @@ export class MajorImplementService {
     }
 
     // Channels
-    const textCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.textCategoryId);
-    const voiceCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.voiceCategoryId);
+    const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryId);
 
     const channelPositions: Discord.ChannelPosition[] = [];
-    channelPositions.push(...this.createChannelPositionsByName(textCategory.children.array()));
-    channelPositions.push(...this.createChannelPositionsByName(voiceCategory.children.array()));
+    channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
 
     await guildContext.guild.setChannelPositions(channelPositions);
     await DiscordUtils.rateLimitAvoidance();

@@ -4,9 +4,9 @@ import { Major } from "models/major";
 import { MajorUtils } from "utils/major";
 
 export class MajorCategoryImplementService {
-  public static async createTextCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
+  public static async createCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
     const category = await guildContext.guild.channels.create(
-      MajorUtils.getTextCategoryName(major),
+      MajorUtils.getCategoryName(major),
       {
         type: "category",
         permissionOverwrites: [
@@ -16,26 +16,7 @@ export class MajorCategoryImplementService {
             deny: ["VIEW_CHANNEL"]
           }
         ],
-        reason: "StudyBot automatic major text category creation.",
-      }
-    );
-
-    return category;
-  }
-
-  public static async createVoiceCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
-    const category = await guildContext.guild.channels.create(
-      MajorUtils.getVoiceCategoryName(major),
-      {
-        type: "category",
-        permissionOverwrites: [
-          {
-            type: "role",
-            id: guildContext.guild.roles.everyone.id,
-            deny: ["VIEW_CHANNEL"]
-          }
-        ],
-        reason: "StudyBot automatic major voice category creation.",
+        reason: "StudyBot automatic major category creation.",
       }
     );
 
