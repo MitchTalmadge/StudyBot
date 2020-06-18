@@ -4,6 +4,6 @@ import { ICourseImplement } from "./course";
  * Discord implementation of a major.
  */
 export interface IMajorImplement {
-  categoryId: string;
+  categoryIds: string[];
   courseImplements: Map<string, ICourseImplement>
 }

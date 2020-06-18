@@ -74,6 +74,12 @@ export class GuildContext {
   public guildLog(message: string, ...optionalParams: any): void {
     console.log(`[G: ${this.guild.name}] ${message}`, ...optionalParams);
   }
+  
+  public guildDebug(message: string, ...optionalParams: any): void {
+    if(process.env.NODE_ENV === "development") {
+      this.guildLog(`[DEBUG] ${message}`, ...optionalParams);
+    }
+  }
 
   public guildError(message: string, ...optionalParams: any): void {
     console.error(`[G: ${this.guild.name}] ${message}`, ...optionalParams);

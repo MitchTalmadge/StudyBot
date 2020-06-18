@@ -27,18 +27,24 @@ export class CourseImplementService {
   }
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
-    const majorImplement = await MajorImplementService.getOrCreateMajorImplement(guildContext, course.major);
+    const majorCategoryId = await MajorImplementService.getCategoryIdForNewCourseImplement(guildContext, course.major);
     const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
     
-    // Delays are to avoid rate limits.
+    // Main Role
     await DiscordUtils.rateLimitAvoidance();
     const mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
+    
+    // TA Role
     await DiscordUtils.rateLimitAvoidance();
     const taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
+
+    // Text Channel
     await DiscordUtils.rateLimitAvoidance();
-    const mainChannelId = (await CourseChannelImplementService.createMainChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const mainChannelId = (await CourseChannelImplementService.createMainChannel(guildContext, course, majorCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    
+    // Voice Channel
     await DiscordUtils.rateLimitAvoidance();
-    const voiceChannelId = (await CourseChannelImplementService.createVoiceChannel(guildContext, course, majorImplement.categoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
+    const voiceChannelId = (await CourseChannelImplementService.createVoiceChannel(guildContext, course, majorCategoryId, mainRoleId, taRoleId, verificationImplement.roleId)).id;
 
     const implement = {
       mainRoleId,

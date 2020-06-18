@@ -8,13 +8,9 @@ import { Major } from "models/major";
 import { MajorCategoryImplementService } from "./category";
 
 export class MajorImplementService {
-  public static async getOrCreateMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement> {
-    const implement = await this.getMajorImplementIfExists(guildContext, major);
-    if (implement)
-      return implement;
+  private static readonly MAX_CHANNELS_PER_CATEGORY = 50;
 
-    return await this.createMajorImplement(guildContext, major);
-  }
+  private static readonly CHANNELS_PER_COURSE_IMPLEMENT = 2; // Text and Voice
 
   public static async getMajorImplementIfExists(guildContext: GuildContext, major: Major): Promise<IMajorImplement | undefined> {
     const implement = await GuildStorageDatabaseService.getMajorImplement(guildContext, major);
@@ -24,15 +20,47 @@ export class MajorImplementService {
     return undefined;
   }
 
-  private static async createMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement> {
-    await DiscordUtils.rateLimitAvoidance();
-    const categoryId = (await MajorCategoryImplementService.createCategory(guildContext, major)).id;
+  public static async getCategoryIdForNewCourseImplement(guildContext: GuildContext, major: Major): Promise<string> {
+    let implement = await this.getMajorImplementIfExists(guildContext, major);
+    if (!implement) {
+      implement = await this.createEmptyMajorImplement(guildContext, major);
+    }
 
+    const currentChannelCount = implement.courseImplements.size * this.CHANNELS_PER_COURSE_IMPLEMENT;
+    // Select a category index where all of the required channels will fit together.
+    const selectedCategoryIndex = Math.floor((currentChannelCount + this.CHANNELS_PER_COURSE_IMPLEMENT - 1) / this.MAX_CHANNELS_PER_CATEGORY);
+    guildContext.guildDebug("Major category requested for new course implement.");
+    guildContext.guildDebug(`Current Channel Count: ${currentChannelCount} | Selected Category Index: ${selectedCategoryIndex}`);
+    implement = await this.scaleOutCategories(guildContext, major, selectedCategoryIndex + 1);
+    return implement.categoryIds[selectedCategoryIndex];
+  }
+
+  private static async createEmptyMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement> {
     const implement: IMajorImplement = {
-      categoryId,
+      categoryIds: [],
       courseImplements: new Map<string, ICourseImplement>()
     };
 
+    await GuildStorageDatabaseService.setMajorImplement(guildContext, major, implement);
+    return implement;
+  }
+
+  /**
+   * Ensures the creation of at least enough categories to meet the count provided.
+   * @param guildContext The guild context.
+   * @param major The major.
+   * @param count The number of categories needed.
+   * @returns A promise that resolves the updated major implement.
+   */
+  private static async scaleOutCategories(guildContext: GuildContext, major: Major, count: number): Promise<IMajorImplement> {
+    const implement = await GuildStorageDatabaseService.getMajorImplement(guildContext, major);
+    const numToCreate = count - implement.categoryIds.length;
+    guildContext.guildDebug(`Scaling out to ${count} categories (${numToCreate} to create.)`);
+    for (let i = 0; i < numToCreate; i++) {
+      await DiscordUtils.rateLimitAvoidance();
+      const categoryId = (await MajorCategoryImplementService.createCategory(guildContext, major)).id;
+      implement.categoryIds.push(categoryId);
+    }
     await GuildStorageDatabaseService.setMajorImplement(guildContext, major, implement);
     return implement;
   }
@@ -47,11 +75,10 @@ export class MajorImplementService {
       return;
     }
 
-    // Delays are to avoid rate limits.
-    await DiscordUtils.rateLimitAvoidance();
-    await guildContext.guild.channels.resolve(implement.categoryId).delete();
+    //await DiscordUtils.rateLimitAvoidance();
+    //await guildContext.guild.channels.resolve(implement.categoryId).delete();
 
-    await GuildStorageDatabaseService.setMajorImplement(guildContext, major, undefined);
+    //await GuildStorageDatabaseService.setMajorImplement(guildContext, major, undefined);
   }
 
   /**
@@ -67,13 +94,13 @@ export class MajorImplementService {
     }
 
     // Channels
-    const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryId);
+    // const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryId);
 
-    const channelPositions: Discord.ChannelPosition[] = [];
-    channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
+    // const channelPositions: Discord.ChannelPosition[] = [];
+    // channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
 
-    await guildContext.guild.setChannelPositions(channelPositions);
-    await DiscordUtils.rateLimitAvoidance();
+    // await guildContext.guild.setChannelPositions(channelPositions);
+    // await DiscordUtils.rateLimitAvoidance();
 
     //TODO: Roles
   }
