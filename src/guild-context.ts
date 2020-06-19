@@ -16,8 +16,6 @@ import _ from "lodash";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
-  private courseService: CourseService;
-
   private courseSelectionController: CourseSelectionChannelController;
   
   private verificationController: VerificationChannelController;
