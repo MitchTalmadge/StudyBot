@@ -14,6 +14,8 @@ export class DiscordMessageUtils {
     message.delete({
       timeout: delayMs,
       reason: "StudyBot automatic message purge."
+    }).catch(err => {
+      console.error(`Failed to delete message with ID ${message.id}:`, err);
     });
 
     return DiscordUtils.rateLimitAvoidance();
@@ -47,6 +49,8 @@ export class DiscordMessageUtils {
       message.delete({
         timeout: 0,
         reason: "StudyBot temporary message."
+      }).catch(err => {
+        console.error(`Failed to delete temporary message with ID ${message.id}:`, err);
       });
     });
 
