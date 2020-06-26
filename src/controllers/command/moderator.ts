@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { CommandController } from "./command-controller";
 import { ConfigService } from "services/config";
 import { DiscordUtils } from "utils/discord";
 
-export class ModeratorCommandController extends CommandController {
+import { CommandController } from "./command-controller";
 
+export class ModeratorCommandController extends CommandController {
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if(!message.content.startsWith("!!")) {
       return;
@@ -33,7 +33,6 @@ export class ModeratorCommandController extends CommandController {
 
   private isModerator(member: Discord.GuildMember): boolean {
     const moderatorRoleName = ConfigService.getConfig().guilds[this.guildContext.guild.id].moderatorRoleName.toLowerCase();
-    return member.roles.cache.some(r => r.name.toLowerCase() === moderatorRoleName)
+    return member.roles.cache.some(r => r.name.toLowerCase() === moderatorRoleName);
   }
-
 }

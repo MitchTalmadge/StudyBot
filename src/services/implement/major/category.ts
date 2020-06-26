@@ -1,12 +1,13 @@
 import * as Discord from "discord.js";
 import { GuildContext } from "guild-context";
+import { CourseImplementChannelType } from "models/implement/course";
 import { Major } from "models/major";
 import { MajorUtils } from "utils/major";
 
 export class MajorCategoryImplementService {
-  public static async createCategory(guildContext: GuildContext, major: Major): Promise<Discord.CategoryChannel> {
+  private static async createCategory(guildContext: GuildContext, name: string): Promise<Discord.CategoryChannel> {
     const category = await guildContext.guild.channels.create(
-      MajorUtils.getCategoryName(major),
+      name,
       {
         type: "category",
         permissionOverwrites: [
@@ -21,5 +22,9 @@ export class MajorCategoryImplementService {
     );
 
     return category;
+  }
+
+  public static async createCategoryOfType(guildContext: GuildContext, major: Major, type: CourseImplementChannelType): Promise<Discord.CategoryChannel> {
+    return await this.createCategory(guildContext, MajorUtils.getCategoryName(major, type));
   }
 }

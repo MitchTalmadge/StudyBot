@@ -1,7 +1,8 @@
 // eslint-disable-next-line quotes
-import mongoose, { Document, Schema } from "mongoose";
-import { IMajorImplement } from "../implement/major";
 import { IVerificationImplement } from "models/implement/verification";
+import mongoose, { Document, Schema } from "mongoose";
+
+import { IMajorImplement } from "../implement/major";
 
 export interface IGuildStorage extends Document {
   guildId: string;
@@ -16,17 +17,20 @@ export const GuildStorageSchema = new Schema({
   majorImplements: {
     type: Map,
     of: new Schema({
-      categoryIds: { type: [Schema.Types.String], required: true, unique: true },
-      courseImplements: { 
-        type: Map, 
+      categoryIdsMatrix: {
+        type: [
+          new Schema({ categoryIds: { type: [Schema.Types.String], required: true } })
+        ], required: true
+      },
+      courseImplements: {
+        type: Map,
         of: new Schema({
           mainRoleId: { type: Schema.Types.String, required: true, unique: true },
           taRoleId: { type: Schema.Types.String, required: true, unique: true },
-          mainChannelId: { type: Schema.Types.String, required: true, unique: true },
-          voiceChannelId: { type: Schema.Types.String, required: true, unique: true }
-        }), 
-        required: true, 
-        default: {} 
+          channelIds: { type: [Schema.Types.String], required: true },
+        }),
+        required: true,
+        default: {}
       },
     }),
     required: true,

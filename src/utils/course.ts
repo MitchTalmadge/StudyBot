@@ -1,6 +1,6 @@
 import * as crypto from "crypto";
-import { ConfigService } from "services/config";
 import { Course } from "models/course";
+import { ConfigService } from "services/config";
 
 export class CourseUtils {
   public static parseCourseNumberList(list: string): { [majorPrefix: string]: string[] } {
@@ -44,7 +44,7 @@ export class CourseUtils {
     return `${this.convertToString(course)}-ta`;
   }
 
-  public static getMainChannelName(course: Course): string {
+  public static getChatChannelName(course: Course): string {
     return this.convertToString(course);
   }
 

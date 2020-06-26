@@ -1,12 +1,35 @@
 import * as Discord from "discord.js";
-import { Course } from "models/course";
-import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
+import { Course } from "models/course";
+import { CourseImplementChannelType } from "models/implement/course";
+import { CourseUtils } from "utils/course";
 
 export class CourseChannelImplementService {
-  public static async createMainChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.TextChannel> {
+  public static async createChannelByType(
+    guildContext: GuildContext,
+    type: CourseImplementChannelType,
+    course: Course,
+    categoryId: string,
+    mainRoleId: string,
+    taRoleId: string,
+    verificationRoleId: string): Promise<Discord.Channel> {
+    switch (type) {
+      case CourseImplementChannelType.CHAT:
+        return this.createChatChannel(guildContext, course, categoryId, mainRoleId, taRoleId, verificationRoleId);
+      case CourseImplementChannelType.VOICE:
+        return this.createVoiceChannel(guildContext, course, categoryId, mainRoleId, taRoleId, verificationRoleId);
+    }
+  }
+
+  public static async createChatChannel(
+    guildContext: GuildContext, 
+    course: Course, 
+    categoryId: string, 
+    mainRoleId: string, 
+    taRoleId: string, 
+    verificationRoleId: string): Promise<Discord.TextChannel> {
     const channel = await guildContext.guild.channels.create(
-      CourseUtils.getMainChannelName(course),
+      CourseUtils.getChatChannelName(course),
       {
         type: "text",
         topic: `:information_source: ${course.title}`,
@@ -36,14 +59,14 @@ export class CourseChannelImplementService {
             allow: ["VIEW_CHANNEL", "MANAGE_MESSAGES"]
           },
         ],
-        reason: "StudyBot automatic channel creation.",
+        reason: "StudyBot automatic course channel creation.",
       }
     );
 
     return channel;
   }
 
-  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.VoiceChannel> {  
+  public static async createVoiceChannel(guildContext: GuildContext, course: Course, categoryId: string, mainRoleId: string, taRoleId: string, verificationRoleId: string): Promise<Discord.VoiceChannel> {
     const channel = await guildContext.guild.channels.create(
       CourseUtils.getVoiceChannelName(course),
       {
@@ -74,7 +97,7 @@ export class CourseChannelImplementService {
             allow: ["VIEW_CHANNEL", "MUTE_MEMBERS", "DEAFEN_MEMBERS", "PRIORITY_SPEAKER", "STREAM"]
           }
         ],
-        reason: "StudyBot automatic channel creation.",
+        reason: "StudyBot automatic course channel creation.",
       }
     );
 
