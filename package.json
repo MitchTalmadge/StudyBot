@@ -4,20 +4,9 @@
     "authors": "Mitch Talmadge <MitchTalmadge>",
     "version": "1.0.0",
     "scripts": {
-        "debug": "nodemon ./src/main.ts",
-        "debug:mongo": "nodemon ./src/dev/init.ts",
+        "debug": "node --inspect -r tsconfig-paths/register -r ts-node/register ./src/main.ts",
+        "debug:mongo": "node --inspect -r tsconfig-paths/register -r ts-node/register ./src/dev/init.ts",
         "start": "node -r tsconfig-paths/register -r ts-node/register ./src/main.ts"
-    },
-    "nodemonConfig": {
-        "delay": 1000,
-        "watch": [
-            "src",
-            "dev"
-        ],
-        "execMap": {
-            "ts": "node --inspect -r tsconfig-paths/register -r ts-node/register"
-        },
-        "ext": "*"
     },
     "repository": {
         "type": "git",
@@ -53,7 +42,6 @@
         "eslint-plugin-import": "^2.18.2",
         "eslint-plugin-simple-import-sort": "^5.0.3",
         "mongodb-memory-server": "^6.3.2",
-        "nodemon": "^2.0.2",
         "rimraf": "^3.0.2",
         "ts-node": "^8.6.2",
         "tsconfig-paths": "^3.9.0",
