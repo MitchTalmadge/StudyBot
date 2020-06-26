@@ -129,26 +129,85 @@ export class MajorImplementService {
     }
 
     // Channels
-    // const sortedCourseImplements = [...implement.courseImplements].sort((a, b) => a[0].localeCompare(b[0]));
+    const sortedCourseImplements = [...implement.courseImplements].sort((a, b) => a[0].localeCompare(b[0]));
 
-    // for(let i = 0; i < sortedCourseImplements.length; i++) {
-    //   const courseImplement = sortedCourseImplements[i];
+    // Put the channels in the right categories.
+    for(let i = 0; i < sortedCourseImplements.length; i++) {
+      const courseImplement = sortedCourseImplements[i];
 
+      guildContext.guildDebug(`Sorting ${courseImplement[0]}...`);
 
-    //   const correctCategoryIndex = Math.floor(i / this.MAX_COURSE_IMPLEMENTS_PER_CATEGORY);
-    //   const correctPosition = i % this.MAX_COURSE_IMPLEMENTS_PER_CATEGORY;
+      const destinationCategoryIndex = Math.floor(i / this.MAX_CHANNELS_PER_CATEGORY);
 
+      for(let type of CourseImplementChannelType.values()) {
+        const channelId = courseImplement[1].channelIds[type];
+        const sourceCategoryIndex = this.findCategoryIndexOfCourseChannel(guildContext, implement, channelId, type);
 
-    // }
+        if(destinationCategoryIndex === sourceCategoryIndex)
+          continue;
 
-    // const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryId);
+        await this.correctChannelCategory(guildContext, implement, channelId, sourceCategoryIndex, destinationCategoryIndex, type);
+      }
+    }
 
-    // const channelPositions: Discord.ChannelPosition[] = [];
-    // channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
+    // Batch sort the categories.
+    const channelPositions: Discord.ChannelPosition[] = [];
+    for(let type of CourseImplementChannelType.values()) {
+      for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
+        let category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
+        category = <Discord.CategoryChannel>(await category.fetch());
+        channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
+      }
+    }
+    await guildContext.guild.setChannelPositions(channelPositions);
 
-    // await guildContext.guild.setChannelPositions(channelPositions);
-    // await DiscordUtils.rateLimitAvoidance();
-
+    //TODO: Categories
     //TODO: Roles
+  }
+
+  private static async correctChannelCategory(
+    guildContext: GuildContext, 
+    implement: IMajorImplement, 
+    channelId: string,
+    sourceCategoryIndex: number,
+    destinationCategoryIndex: number,
+    type: CourseImplementChannelType): Promise<void> {
+    const channel = guildContext.guild.channels.resolve(channelId);
+
+    guildContext.guildDebug(`Channel ${channel.name} needs to be moved from category ${sourceCategoryIndex} to ${destinationCategoryIndex}.`);
+
+    const sourceCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[sourceCategoryIndex]);
+    const destinationCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[destinationCategoryIndex]);
+    
+    // Get the channel to swap (the most efficient is the last channel in the category)
+    const otherChannel = destinationCategory.children.reduce((prev, current) => {
+      if(prev.position > current.position)
+        return prev;
+      return current;
+    }, destinationCategory.children.first());
+
+    // Swap across categories.
+    guildContext.guildDebug(`Swapping ${channel.name} and ${otherChannel.name}.`);
+    const reason = "Studybot automatic channel sorting";
+    await channel.setParent(destinationCategory, { reason });
+    await otherChannel.setParent(sourceCategory, { reason });
+  }
+
+  private static findCategoryIndexOfCourseChannel(guildContext: GuildContext, majorImplement: IMajorImplement, channelId: string, type: CourseImplementChannelType): number {
+    return majorImplement.categoryIdsMatrix[type].categoryIds.findIndex(categoryId => {
+      const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
+      return category.children.has(channelId);
+    });
+  }
+
+  private static createChannelPositionsByName(channels: Discord.GuildChannel[]): Discord.ChannelPosition[] {
+    return channels
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((c, i) => {
+        return {
+          channel: c,
+          position: i
+        };
+      });
   }
 }

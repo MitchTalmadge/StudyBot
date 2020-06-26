@@ -1,9 +1,10 @@
 import * as Discord from "discord.js";
-import { ConfigService } from "./services/config";
-import { DatabaseService } from "./services/database/database";
+import express from "express";
+
 import { GuildContext } from "./guild-context";
 import { MajorMap } from "./models/major-map";
-import express from "express";
+import { ConfigService } from "./services/config";
+import { DatabaseService } from "./services/database/database";
 
 class StudyBot {
   private static client: Discord.Client;
