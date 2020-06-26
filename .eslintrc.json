@@ -14,7 +14,8 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "simple-import-sort"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
@@ -42,7 +43,8 @@
     ],
     "quotes": "warn",
     "semi": "warn",
-    "sort-imports": "warn"
+    "sort-imports": "off",
+    "simple-import-sort/sort": "warn"
   },
   "settings": {
     "import/resolver": {
