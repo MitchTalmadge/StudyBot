@@ -141,6 +141,9 @@ export class MajorImplementService {
     if (!implement) {
       return;
     }
+    if(implement.categoryIdsMatrix[0].categoryIds.length == 0) {
+      return;
+    }
 
     // Channels
     const sortedCourseImplements = [...implement.courseImplements].sort((a, b) => a[0].localeCompare(b[0]));
@@ -148,11 +151,7 @@ export class MajorImplementService {
     // Put the channels in the right categories.
     for(let i = 0; i < sortedCourseImplements.length; i++) {
       const courseImplement = sortedCourseImplements[i];
-
       guildContext.guildDebug(`Sorting ${courseImplement[0]}...`);
-
-      this.listAllChildren(guildContext, implement);
-
       const destinationCategoryIndex = Math.floor(i / this.MAX_CHANNELS_PER_CATEGORY);
 
       for(let type of CourseImplementChannelType.values()) {
@@ -162,15 +161,13 @@ export class MajorImplementService {
           guildContext.guildError(`Tried to sort ${courseImplement[0]} but could not find it in the categories!`);
           continue;
         }
-
         if(destinationCategoryIndex === sourceCategoryIndex)
           continue;
-
         await this.migrateCourseChannel(guildContext, implement, channelId, sourceCategoryIndex, destinationCategoryIndex, type);
       }
     }
 
-    // Batch sort the categories.
+    // Sort the categories' children.
     const channelPositions: Discord.ChannelPosition[] = [];
     for(let type of CourseImplementChannelType.values()) {
       for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
@@ -179,21 +176,24 @@ export class MajorImplementService {
       }
     }
     await guildContext.guild.setChannelPositions(channelPositions);
+  
+    // Sort the categories themselves.
 
-    //TODO: Categories
-    //TODO: Roles
-  }
-
-  private static async listAllChildren(guildContext: GuildContext, implement: IMajorImplement) {
+    // Category sorting works by finding the current position of the first category,
+    // then placing all other categories sequentially after that first category.
+    // This "shoves" the other majors' categories down the list, where they will be sorted 
+    // later by this same algorithm.
+    const firstCategory = guildContext.guild.channels.resolve(implement.categoryIdsMatrix[0].categoryIds[0]);
+    let nextAvailablePosition = firstCategory.position;
     for(let type of CourseImplementChannelType.values()) {
       for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
-        const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
-        guildContext.guildDebug(`> ${category}:`);
-        for(let child of category.children) {
-          guildContext.guildDebug(`> - ${child[1].name}`);
-        }
+        const category = guildContext.guild.channels.resolve(categoryId);
+        await category.setPosition(nextAvailablePosition);
+        nextAvailablePosition++;
       }
-    }
+    }    
+
+    // TODO: Roles
   }
 
   private static async migrateCourseChannel(
