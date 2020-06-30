@@ -1,5 +1,4 @@
 import * as Discord from "discord.js";
-import { DiscordUtils } from "utils/discord";
 
 import { CommandController } from "./command-controller";
 
@@ -56,11 +55,9 @@ export class DevCommandController extends CommandController {
         for (let childCacheMeta of category.children) {
           const childChannel = childCacheMeta[1];
           await childChannel.delete("StudyBot dev reset command.");
-          await DiscordUtils.rateLimitAvoidance();
         }
 
         await category.delete("StudyBot dev reset command.");
-        await DiscordUtils.rateLimitAvoidance();
       }
     }
 
@@ -69,7 +66,6 @@ export class DevCommandController extends CommandController {
       const role = roleMeta[1];
       if (role.name === "verified") {
         await role.delete("StudyBot dev reset command.");
-        await DiscordUtils.rateLimitAvoidance();
         continue;
       }
 
@@ -78,11 +74,9 @@ export class DevCommandController extends CommandController {
         const nonTaRole = this.guildContext.guild.roles.cache.find(r => r.name === role.name.substr(0, role.name.length - "-ta".length));
         if (nonTaRole) {
           await nonTaRole.delete("StudyBot dev reset command.");
-          await DiscordUtils.rateLimitAvoidance();
         }
 
         await role.delete("StudyBot dev reset command.");
-        await DiscordUtils.rateLimitAvoidance();
       }
     }
   }
@@ -97,7 +91,6 @@ export class DevCommandController extends CommandController {
     // Delete in groups of 100 until the messages are too old and must be deleted one at a time.
     while (cacheSize > 0) {
       const deletedSize = (await channel.bulkDelete(100, true)).size;
-      await DiscordUtils.rateLimitAvoidance(1500);
       cacheSize = (await channel.messages.fetch()).size;
       if(cacheSize > 0 && deletedSize < 100) {
         // We couldn't delete a full 100 messages, which means that at this point the messages are too old
@@ -105,7 +98,6 @@ export class DevCommandController extends CommandController {
         while(cacheSize > 0) {
           for(let message of channel.messages.cache) {
             await message[1].delete({ reason: "StudyBot dev wipechannel command." });
-            await DiscordUtils.rateLimitAvoidance(900);
           }
           cacheSize = (await channel.messages.fetch()).size;
         }

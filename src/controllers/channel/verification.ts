@@ -1,14 +1,15 @@
 import * as Discord from "discord.js";
-import { ChannelController } from "./channel-controller";
-import { ConfigService } from "services/config";
-import { DiscordMessageUtils } from "utils/discord-message";
-import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
 import { IUser } from "models/database/user";
-import { UserDatabaseService } from "services/database/user";
 import { VerificationStatus } from "models/verification-status";
+import { ConfigService } from "services/config";
+import { UserDatabaseService } from "services/database/user";
 import { VerifierService } from "services/verification/verifier";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
+import { DiscordUtils } from "utils/discord";
+import { DiscordMessageUtils } from "utils/discord-message";
+
+import { ChannelController } from "./channel-controller";
 
 export class VerificationChannelController extends ChannelController {
   public static readonly CHANNEL_NAME = "get-verified";
@@ -34,7 +35,7 @@ export class VerificationChannelController extends ChannelController {
     }
 
     // Remove the user's message immediately for privacy since they often contain student IDs.
-    await DiscordMessageUtils.purgeMessage(message);
+    DiscordMessageUtils.purgeMessage(message);
 
     const contents = message.content.trim();
 
@@ -74,7 +75,7 @@ export class VerificationChannelController extends ChannelController {
 
     // Check if the input is a student ID.
     if(!this.verifier.looksLikeStudentID(contents)) {
-      await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`)
+      await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`);
       return;
     }
 

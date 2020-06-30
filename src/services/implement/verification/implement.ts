@@ -1,7 +1,7 @@
-import { DiscordUtils } from "utils/discord";
 import { GuildContext } from "guild-context";
-import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { IVerificationImplement } from "models/implement/verification";
+import { GuildStorageDatabaseService } from "services/database/guild-storage";
+
 import { VerificationRoleImplementService } from "./role";
 
 export class VerificationImplementService {
@@ -22,7 +22,6 @@ export class VerificationImplementService {
   }
 
   private static async createVerificationImplement(guildContext: GuildContext): Promise<IVerificationImplement> {
-    await DiscordUtils.rateLimitAvoidance();
     const roleId = (await VerificationRoleImplementService.createRole(guildContext)).id;
     
     const implement: IVerificationImplement = {

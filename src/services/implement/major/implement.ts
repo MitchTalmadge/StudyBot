@@ -94,7 +94,6 @@ export class MajorImplementService {
     const numToCreate = count - implement.categoryIdsMatrix[type].categoryIds.length;
     guildContext.guildDebug(`Scaling out to ${count} ${CourseImplementChannelType[type]} categories (${numToCreate <= 0 ? "None" : numToCreate} to create.)`);
     for (let i = 0; i < numToCreate; i++) {
-      await DiscordUtils.rateLimitAvoidance();
       const categoryId = (await MajorCategoryImplementService.createCategoryOfType(guildContext, major, type)).id;
       implement.categoryIdsMatrix[type].categoryIds.push(categoryId);
     }
@@ -102,20 +101,35 @@ export class MajorImplementService {
     return implement;
   }
 
-  public static async deleteMajorImplementIfEmpty(guildContext: GuildContext, major: Major): Promise<void> {
+  /**
+   * Removes all empty categories caused by members leaving courses.
+   * @returns A promise that resolves when everything is cleaned up.
+   */
+  public static async cleanUp(guildContext: GuildContext, major: Major): Promise<void> {
     const implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;
     }
 
-    if (implement.courseImplements.size > 0) {
-      return;
+    // Sorting will expose empty categories.
+    await this.sortMajorImplement(guildContext, major);
+
+    for(let type of CourseImplementChannelType.values()) {
+      // Determine which categories are empty.
+      const categoriesToRemove: Discord.CategoryChannel[] = [];
+      for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
+        const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
+        if(category.children.size == 0) {
+          categoriesToRemove.push(category);
+        }
+      }
+
+      // Delete empty categories. 
+      implement.categoryIdsMatrix[type].categoryIds = implement.categoryIdsMatrix[type].categoryIds
+        .filter(categoryId => !categoriesToRemove.find(category => category.id === categoryId));    
+      await GuildStorageDatabaseService.setMajorImplement(guildContext, major, implement);
+      await Promise.all(categoriesToRemove.map(category => category.delete("StudyBot automatic Major implement scale-in.")));
     }
-
-    //await DiscordUtils.rateLimitAvoidance();
-    //await guildContext.guild.channels.resolve(implement.categoryId).delete();
-
-    //await GuildStorageDatabaseService.setMajorImplement(guildContext, major, undefined);
   }
 
   /**
@@ -137,16 +151,22 @@ export class MajorImplementService {
 
       guildContext.guildDebug(`Sorting ${courseImplement[0]}...`);
 
+      this.listAllChildren(guildContext, implement);
+
       const destinationCategoryIndex = Math.floor(i / this.MAX_CHANNELS_PER_CATEGORY);
 
       for(let type of CourseImplementChannelType.values()) {
         const channelId = courseImplement[1].channelIds[type];
         const sourceCategoryIndex = this.findCategoryIndexOfCourseChannel(guildContext, implement, channelId, type);
+        if(sourceCategoryIndex == -1) {
+          guildContext.guildError(`Tried to sort ${courseImplement[0]} but could not find it in the categories!`);
+          continue;
+        }
 
         if(destinationCategoryIndex === sourceCategoryIndex)
           continue;
 
-        await this.correctChannelCategory(guildContext, implement, channelId, sourceCategoryIndex, destinationCategoryIndex, type);
+        await this.migrateCourseChannel(guildContext, implement, channelId, sourceCategoryIndex, destinationCategoryIndex, type);
       }
     }
 
@@ -155,7 +175,6 @@ export class MajorImplementService {
     for(let type of CourseImplementChannelType.values()) {
       for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
         let category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
-        category = <Discord.CategoryChannel>(await category.fetch());
         channelPositions.push(...this.createChannelPositionsByName(category.children.array()));
       }
     }
@@ -165,13 +184,26 @@ export class MajorImplementService {
     //TODO: Roles
   }
 
-  private static async correctChannelCategory(
+  private static async listAllChildren(guildContext: GuildContext, implement: IMajorImplement) {
+    for(let type of CourseImplementChannelType.values()) {
+      for(let categoryId of implement.categoryIdsMatrix[type].categoryIds) {
+        const category = <Discord.CategoryChannel>guildContext.guild.channels.resolve(categoryId);
+        guildContext.guildDebug(`> ${category}:`);
+        for(let child of category.children) {
+          guildContext.guildDebug(`> - ${child[1].name}`);
+        }
+      }
+    }
+  }
+
+  private static async migrateCourseChannel(
     guildContext: GuildContext, 
     implement: IMajorImplement, 
     channelId: string,
     sourceCategoryIndex: number,
     destinationCategoryIndex: number,
     type: CourseImplementChannelType): Promise<void> {
+    const reason = "Studybot automatic channel sorting";
     const channel = guildContext.guild.channels.resolve(channelId);
 
     guildContext.guildDebug(`Channel ${channel.name} needs to be moved from category ${sourceCategoryIndex} to ${destinationCategoryIndex}.`);
@@ -179,6 +211,14 @@ export class MajorImplementService {
     const sourceCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[sourceCategoryIndex]);
     const destinationCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[destinationCategoryIndex]);
     
+    // Simply move if no swap is needed.
+    if(destinationCategory.children.size < this.MAX_CHANNELS_PER_CATEGORY) {
+      guildContext.guildDebug(`Moving ${channel.name}.`);
+      await channel.setParent(destinationCategory, { reason });
+      await DiscordUtils.refreshChannelsInCache(guildContext, [destinationCategory]);
+      return;
+    }
+
     // Get the channel to swap (the most efficient is the last channel in the category)
     const otherChannel = destinationCategory.children.reduce((prev, current) => {
       if(prev.position > current.position)
@@ -188,9 +228,9 @@ export class MajorImplementService {
 
     // Swap across categories.
     guildContext.guildDebug(`Swapping ${channel.name} and ${otherChannel.name}.`);
-    const reason = "Studybot automatic channel sorting";
     await channel.setParent(destinationCategory, { reason });
     await otherChannel.setParent(sourceCategory, { reason });
+    await DiscordUtils.refreshChannelsInCache(guildContext, [destinationCategory, sourceCategory]);
   }
 
   private static findCategoryIndexOfCourseChannel(guildContext: GuildContext, majorImplement: IMajorImplement, channelId: string, type: CourseImplementChannelType): number {

@@ -69,7 +69,7 @@ export class CourseImplementService {
     await guildContext.guild.roles.resolve(implement.taRoleId).delete();
 
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
-    await MajorImplementService.deleteMajorImplementIfEmpty(guildContext, course.major);
+    await MajorImplementService.cleanUp(guildContext, course.major);
   }
 
   // TODO: Repair implement

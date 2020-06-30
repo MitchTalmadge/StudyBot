@@ -1,14 +1,25 @@
 import * as Discord from "discord.js";
-import { timer } from "rxjs";
+import { GuildContext } from "guild-context";
 
 export class DiscordUtils {
   /**
-   * Waits for an amount of time in order to avoid rate limits.
-   * Rate limits happen at about 120 events per 60 seconds, or 2 per second.
+   * Evicts the provided channels from cache and re-fetches them from Discord.
+   * @param channels Which channels to refresh.
    */
-  public static async rateLimitAvoidance(delayMs = 750): Promise<void> {
-    delayMs = 0;
-    await timer(delayMs).toPromise();
+  public static async refreshChannelsInCache(guildContext: GuildContext, channels: Discord.GuildChannel[]): Promise<void> {
+    // Evict from cache.
+    for(let channel of channels) {
+      guildContext.guild.client.channels.cache.delete(channel.id);
+      guildContext.guild.channels.cache.delete(channel.id);
+    }
+    // Get from Discord
+    const refreshedChannels = await Promise.all(channels.map(channel => guildContext.guild.client.channels.fetch(channel.id, true)));
+    
+    // Write to cache.
+    for(let channel of refreshedChannels) {
+      guildContext.guild.client.channels.cache.set(channel.id, channel);
+      guildContext.guild.channels.cache.set(channel.id, <Discord.GuildChannel>channel);
+    }
   }
 
   /**

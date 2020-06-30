@@ -1,13 +1,14 @@
 import * as Discord from "discord.js";
-import { ConfigService } from "services/config";
+import { GuildContext } from "guild-context";
 import { Course } from "models/course";
-import { CourseImplementService } from "../implement/course/implement";
+import { VerificationStatus } from "models/verification-status";
+import { ConfigService } from "services/config";
+import { UserDatabaseService } from "services/database/user";
 import { CourseUtils } from "utils/course";
 import { DiscordUtils } from "utils/discord";
-import { GuildContext } from "guild-context";
-import { UserDatabaseService } from "services/database/user";
+
+import { CourseImplementService } from "../implement/course/implement";
 import { VerificationImplementService } from "../implement/verification/implement";
-import { VerificationStatus } from "models/verification-status";
 export class DiscordRoleAssignmentService {
   private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
 
@@ -22,10 +23,7 @@ export class DiscordRoleAssignmentService {
     }
 
     this.roleAssignmentQueues[guildContext.guild.id] =
-      this.roleAssignmentQueues[guildContext.guild.id].finally(() => {
-        // Delay each queue action to help avoid rate limits.
-        return DiscordUtils.rateLimitAvoidance().then(promiseFunc);
-      });
+      this.roleAssignmentQueues[guildContext.guild.id].finally(promiseFunc);
 
     return this.roleAssignmentQueues[guildContext.guild.id];
   }
@@ -97,8 +95,6 @@ export class DiscordRoleAssignmentService {
     // Apply assignments.
     if (rolesToAdd.length > 0)
       discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment.");
-    if(rolesToAdd.length > 0 && rolesToRemove.length > 0)
-      await DiscordUtils.rateLimitAvoidance();  
     if (rolesToRemove.length > 0) {
       discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal.");
     
