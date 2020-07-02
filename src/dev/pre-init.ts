@@ -1,5 +1,5 @@
-import * as path from "path";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import * as path from "path";
 
 const mkdirp = require("mkdirp");
 
@@ -16,7 +16,8 @@ async function createInMemoryDatabase() {
     instance: {
       dbPath: path.resolve(__dirname, "../../temp/db/"),
       dbName: "development",
-      port: 27017
+      port: 27017,
+      storageEngine: "wiredTiger",
     },
   });
   const uri = await mongod.getConnectionString();
