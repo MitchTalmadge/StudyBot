@@ -4,7 +4,11 @@ import { ModeratorCommandController } from "controllers/command/moderator";
 import * as Discord from "discord.js";
 import _ from "lodash";
 import { Course } from "models/course";
-import { ConfigService } from "services/config";
+import { VerificationStatus } from "models/verification-status";
+import { UserDatabaseService } from "services/database/user";
+import { DiscordRoleAssignmentService } from "services/discord/role-assignment";
+import { VerificationImplementService } from "services/implement/verification/implement";
+import { DiscordUtils } from "utils/discord";
 
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
 import { VerificationChannelController } from "./controllers/channel/verification";
@@ -30,10 +34,20 @@ export class GuildContext {
    */
   public courses: { [majorPrefix: string]: Course[] };
 
+  public verifiedRoleId: string;
+
   constructor(
     public guild: Discord.Guild,
     private guildConfig: GuildConfig,
     public majors: MajorMap) {
+    this.init();
+  }
+
+  private async init(): Promise<void> {
+    this.guildLog("Initializing verified role...");
+    const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(this);
+    this.verifiedRoleId = verificationImplement.roleId;
+
     this.guildLog("Initializing course lists...");
     CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
       .then(courses => this.courses = courses)
@@ -41,7 +55,7 @@ export class GuildContext {
         this.guildError("Failed to get course lists from the web catalog.");
         console.error(err);
 
-        _.forIn(majors, major => {
+        _.forIn(this.majors, major => {
           this.courses[major.prefix] = [];
         });
       });
@@ -69,6 +83,18 @@ export class GuildContext {
 
     // Command Controllers
     this.commandControllers.forEach(commandController => commandController.onMessageReceived(message));
+  }
+
+  public onMemberJoin(member: Discord.GuildMember): void {
+    UserDatabaseService.findOrCreateUser(member.user.id, this)
+      .then(user => {
+        if(user.verificationStatus == VerificationStatus.VERIFIED) {
+          UserDatabaseService.setUserVerified(this, member);
+        }
+      })
+      .catch(err => {
+        this.guildError(`Failed to get user from DB on join for ${DiscordUtils.describeUserForLogs(member.user)}.`, err);
+      });
   }
 
   public guildLog(message: string, ...optionalParams: any): void {

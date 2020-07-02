@@ -78,7 +78,7 @@ export class VerificationChannelController extends ChannelController {
     }
 
     // The user has put in their student ID.
-    await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a secret code to your student email address. Just find and type the code here to become verified! Remember to check your spam.`);
+    await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a code to your student email address. Just type the code here to become verified! Remember to check your spam.`);
     
     // Obtain a verification code.
     let verificationCode: string;

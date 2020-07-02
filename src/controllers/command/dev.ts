@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { EmailService } from "services/email";
 
 import { CommandController } from "./command-controller";
 
@@ -17,6 +18,21 @@ export class DevCommandController extends CommandController {
     }
 
     switch (commandTokens[1]) {
+      case "email":
+        if(commandTokens.length < 3) {
+          message.reply("Missing address parameter");
+          return;
+        }
+        message.reply("sending...");
+        this.sendTestEmail(commandTokens[2])
+          .then(() => {
+            message.reply("sent.");
+          })
+          .catch(err => {
+            message.reply("failed to send. Check logs.");
+            this.guildContext.guildError("Could not send test email:", err);
+          });
+        break;
       case "reset":
         message.reply("reset initiated...");
         this.resetGuild()
@@ -38,6 +54,10 @@ export class DevCommandController extends CommandController {
         }
         break;
     }
+  }
+
+  private async sendTestEmail(address: string): Promise<void> {
+    await EmailService.sendEmail(address, "Discord Email Test", "This is a test email. Fake code is 123456. Goodbye!");
   }
 
   /**

@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import express from "express";
+import { DiscordUtils } from "utils/discord";
 
 import { GuildContext } from "./guild-context";
 import { MajorMap } from "./models/major-map";
@@ -40,12 +41,17 @@ class StudyBot {
 
     // Login to Discord.
     console.log("Logging into Discord...");
-    this.client = new Discord.Client();
-    this.client.login(ConfigService.getConfig().discordToken);
+    this.client = new Discord.Client({
+      ws: {
+        intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES"]
+      }
+    });
+    await this.client.login(ConfigService.getConfig().discordToken);
 
     this.client.on("ready", () => this.onDiscordReady());
-    this.client.on("message", (msg) => this.onMessageReceived(msg));
-    this.client.on("rateLimit", (rateLimitData => this.onRateLimit(rateLimitData)));
+    this.client.on("rateLimit", data => this.onRateLimit(data));
+    this.client.on("message", msg => this.onMessageReceived(msg));
+    this.client.on("guildMemberAdd", member => this.onMemberJoin(member));
   }
 
   private static onDiscordReady(): void {
@@ -83,6 +89,10 @@ class StudyBot {
     });
   }
 
+  private static onRateLimit(rateLimitData: Discord.RateLimitData): void {
+    console.error("Rate limit encountered:", rateLimitData);
+  }
+
   private static onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.author.id === this.client.user.id)
       return;
@@ -90,9 +100,16 @@ class StudyBot {
     this.guildContexts[message.guild.id].onMessageReceived(message);
   }
 
-  private static onRateLimit(rateLimitData: Discord.RateLimitData): void {
-    console.error("Rate limit encountered:", rateLimitData);
-  }
+  private static onMemberJoin(member: Discord.GuildMember | Discord.PartialGuildMember): void {
+    const guildContext = this.guildContexts[member.guild.id];
+    if(member.partial) {
+      guildContext.guildDebug(`Skipping partial member join for ${DiscordUtils.describeUserForLogs(member.user)}`);
+      return;
+    }
+
+    guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} joined the guild.`);
+    this.guildContexts[member.guild.id].onMemberJoin(<Discord.GuildMember>member);
+  }  
 }
 
 // Initialize.

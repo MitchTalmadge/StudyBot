@@ -6,6 +6,6 @@ export class UtahVerifierService extends VerifierService {
   }
 
   public convertStudentIDToEmailAddress(studentId: string): string {
-    return `${studentId}@umail.utah.edu`;
+    return `${studentId}@utah.edu`;
   }
 }
