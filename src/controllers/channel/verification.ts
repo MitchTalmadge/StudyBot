@@ -12,8 +12,6 @@ import { DiscordMessageUtils } from "utils/discord-message";
 import { ChannelController } from "./channel-controller";
 
 export class VerificationChannelController extends ChannelController {
-  public static readonly CHANNEL_NAME = "get-verified";
-  
   private static readonly MESSAGE_DELAY = 30_000;
 
   private enabled: boolean;

@@ -1,15 +1,17 @@
-import * as Discord from "discord.js";
 import { CommandController } from "controllers/command/command-controller";
-import { Course } from "models/course";
-import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
-import { CourseService } from "./services/course";
 import { DevCommandController } from "controllers/command/dev";
+import { ModeratorCommandController } from "controllers/command/moderator";
+import * as Discord from "discord.js";
+import _ from "lodash";
+import { Course } from "models/course";
+import { ConfigService } from "services/config";
+
+import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
+import { VerificationChannelController } from "./controllers/channel/verification";
 import { GuildConfig } from "./models/config";
 import { MajorMap } from "./models/major-map";
-import { ModeratorCommandController } from "controllers/command/moderator";
-import { VerificationChannelController } from "./controllers/channel/verification";
+import { CourseService } from "./services/course";
 import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
-import _ from "lodash";
 
 /**
  * For the purposes of the bot, wraps up everything it needs to know about one guild.
@@ -58,9 +60,9 @@ export class GuildContext {
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     // Channel Controllers
     if (message.channel instanceof Discord.TextChannel) {
-      if (message.channel.name === CourseSelectionChannelController.CHANNEL_NAME) {
+      if (message.channel.id === this.guildConfig.courseSelectionChannelId) {
         this.courseSelectionController.onMessageReceived(message);
-      } else if (message.channel.name === VerificationChannelController.CHANNEL_NAME) {
+      } else if (message.channel.id === this.guildConfig.verificationChannelId) {
         this.verificationController.onMessageReceived(message);
       }
     }

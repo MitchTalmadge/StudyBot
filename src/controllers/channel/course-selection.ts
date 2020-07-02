@@ -1,16 +1,15 @@
 import * as Discord from "discord.js";
-import { ChannelController } from "./channel-controller";
+import _ from "lodash";
 import { Course } from "models/course";
+import { Major } from "models/major";
 import { CourseService } from "services/course";
+import { UserDatabaseService } from "services/database/user";
 import { CourseUtils } from "utils/course";
 import { DiscordMessageUtils } from "utils/discord-message";
-import { Major } from "models/major";
-import { UserDatabaseService } from "services/database/user";
-import _ from "lodash";
+
+import { ChannelController } from "./channel-controller";
 
 export class CourseSelectionChannelController extends ChannelController {
-  public static readonly CHANNEL_NAME = "course-selector";
-
   // TODO: async-ify
   public async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void> {
     if (message.content.toLowerCase().startsWith("join")) {

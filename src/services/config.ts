@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import { Config } from "models/config";
-import { RouteUtils } from "utils/route";
 import { VerifierType } from "models/verifier-type.enum";
+import { RouteUtils } from "utils/route";
 
 export class ConfigService {
   private static config: Config;
@@ -143,6 +143,12 @@ export class ConfigService {
       }
       if(!guild.moderatorRoleName) {
         throw Error(`Guild ID ${guildId} configuration has missing or empty moderator role name.`);
+      }
+      if(!guild.courseSelectionChannelId) {
+        throw Error(`Guild ID ${guildId} configuration has missing or empty course selection channel ID.`);
+      }
+      if(!guild.verificationChannelId) {
+        throw Error(`Guild ID ${guildId} configuration has missing or empty verification channel ID.`);
       }
       //TODO: web catalog validation.
     });

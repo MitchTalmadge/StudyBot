@@ -48,4 +48,6 @@ export interface GuildConfig {
   majors: string[];
   webCatalog: string;
   moderatorRoleName: string;
+  courseSelectionChannelId: string;
+  verificationChannelId: string;
 }
