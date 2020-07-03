@@ -1,43 +1,42 @@
 import * as Discord from "discord.js";
 import { VerificationStatus } from "models/verification-status";
-import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
-import { DiscordUtils } from "utils/discord";
 
 import { CommandController } from "./command-controller";
 
 export class ModeratorCommandController extends CommandController {
   public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
-    if(!message.content.startsWith("!mod ")) {
+    if(message.channel.id !== this.guildContext.guildConfig.moderatorCommandChannelId)
       return;
-    }
 
-    if (!this.isModerator(message.member)) {
-      this.guildContext.guildLog(`User ${DiscordUtils.describeUserForLogs(message.author)} tried to use a moderator command but was not a moderator.`);
+    if(!message.content.startsWith("!!")) 
       return;
-    }
 
     const tokens = message.content.toLowerCase().split(/\s+/);
-    if(tokens.length == 1) {
-      message.reply("please supply a command.");
-      return;
-    }
+    tokens[0] = tokens[0].substr(2);
 
-    switch(tokens[1]) {
+    switch(tokens[0]) {
       case "whois":
         this.runWhoisCommand(message, tokens);
         break;
       default:
-        this.guildContext.guildLog(`User ${DiscordUtils.describeUserForLogs(message.author)} tried to use a non-existent moderator command: ${tokens[0]}.`);
+        this.displayHelp(message);
+        break;
     }
   }
 
+  private displayHelp(message: Discord.Message | Discord.PartialMessage) {
+    message.reply(
+      "here are the valid commands:\n"
+      + "\t`!!whois <Discord User ID or Mention>`\t\tGives info about a user in the server (verification status, etc.)\n");
+  }
+
   private async runWhoisCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
-    if(tokens.length != 3) {
+    if(tokens.length != 2) {
       message.reply("please mention or give ID of one user.");
       return;
     }
-    const mentionMatch = tokens[2].match(/\d+/);
+    const mentionMatch = tokens[1].match(/\d+/);
     if(!mentionMatch) {
       message.reply("please mention or give ID of one user.");
       return;
@@ -86,10 +85,5 @@ export class ModeratorCommandController extends CommandController {
     + guildStrings.join("\n");
 
     message.reply(reply);
-  }
-
-  private isModerator(member: Discord.GuildMember): boolean {
-    const moderatorRoleName = ConfigService.getConfig().guilds[this.guildContext.guild.id].moderatorRoleName.toLowerCase();
-    return member.roles.cache.some(r => r.name.toLowerCase() === moderatorRoleName);
   }
 }

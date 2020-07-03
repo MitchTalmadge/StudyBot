@@ -141,8 +141,8 @@ export class ConfigService {
       if (guild.majors.length === 0) {
         throw Error(`Guild ID ${guildId} configuration has empty majors array.`);
       }
-      if(!guild.moderatorRoleName) {
-        throw Error(`Guild ID ${guildId} configuration has missing or empty moderator role name.`);
+      if(!guild.moderatorCommandChannelId) {
+        throw Error(`Guild ID ${guildId} configuration has missing or empty moderator command channel ID.`);
       }
       if(!guild.courseSelectionChannelId) {
         throw Error(`Guild ID ${guildId} configuration has missing or empty course selection channel ID.`);

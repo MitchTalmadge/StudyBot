@@ -38,7 +38,7 @@ export class GuildContext {
 
   constructor(
     public guild: Discord.Guild,
-    private guildConfig: GuildConfig,
+    public guildConfig: GuildConfig,
     public majors: MajorMap) {
     this.init();
   }
