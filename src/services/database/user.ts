@@ -5,7 +5,6 @@ import { Course, PartialCourse } from "models/course";
 import { IUser, IUserCourseAssignment, User } from "models/database/user";
 import { VerificationStatus } from "models/verification-status";
 import moment from "moment";
-import { CourseUtils } from "utils/course";
 import { VerificationUtils } from "utils/verification";
 
 export class UserDatabaseService {
@@ -15,7 +14,7 @@ export class UserDatabaseService {
    * @param guildContext The guild context. If provided, the User's guild data will be initialized if it is empty.
    */
   public static async findOrCreateUser(discordUserId: string, guildContext?: GuildContext): Promise<IUser> {
-    let user = await User.findOne({ discordUserId: discordUserId }).exec();
+    let user = await this.getUserIfExists(discordUserId);
     if (!user) {
       user = await new User(
         <IUser>{
@@ -35,6 +34,10 @@ export class UserDatabaseService {
     }
 
     return user;
+  }
+
+  public static async getUserIfExists(discordUserId: string): Promise<IUser> {
+    return await User.findOne({ discordUserId: discordUserId }).exec();
   }
 
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {

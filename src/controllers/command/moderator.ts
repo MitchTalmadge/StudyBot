@@ -43,7 +43,11 @@ export class ModeratorCommandController extends CommandController {
     }
 
     const userId = mentionMatch[0];
-    const user = await UserDatabaseService.findOrCreateUser(userId);
+    const user = await UserDatabaseService.getUserIfExists(userId);
+    if(!user) {
+      message.reply(`the user with ID ${userId} does not exist in the database.`);
+      return;
+    }
 
     const guildStrings: string[] = [];
     let member: Discord.GuildMember;
