@@ -1,6 +1,4 @@
-import { DiscordAPIError } from "discord.js";
 import * as Discord from "discord.js";
-import { GuildContext } from "guild-context";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
 

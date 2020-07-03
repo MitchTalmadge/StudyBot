@@ -4,7 +4,6 @@ import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
 import { MemberUpdateService } from "services/member-update";
 import { VerificationService } from "services/verification/verification";
-import { VerifierService } from "services/verification/verifier";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
 
 import { CommandController } from "./command-controller";
