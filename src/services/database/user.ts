@@ -76,6 +76,13 @@ export class UserDatabaseService {
     await user.save();
   }
 
+  public static async leaveGuild(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
+    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
+
+    user.guilds.delete(guildContext.guild.id);
+    await user.save();
+  }
+
   public static async toggleTAStatusForMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
     const courseKeys = courses.map(course => course.key);

@@ -99,6 +99,12 @@ export class GuildContext {
 
   public onMemberLeave(member: Discord.GuildMember): void {
     MemberUpdateService.queueUnassignAllCourses(this, member, false)
+      .then(() => {
+        UserDatabaseService.leaveGuild(this, member)
+          .catch(err => {
+            this.guildError(`Failed to clear guild from member ${DiscordUtils.describeUserForLogs(member.user)} on guild leave.`, err);
+          });
+      })
       .catch(err => {
         this.guildError(`Failed to unassign courses from member ${DiscordUtils.describeUserForLogs(member.user)} on guild leave.`, err);
       });
