@@ -52,6 +52,7 @@ class StudyBot {
     this.client.on("rateLimit", data => this.onRateLimit(data));
     this.client.on("message", msg => this.onMessageReceived(msg));
     this.client.on("guildMemberAdd", member => this.onMemberJoin(member));
+    this.client.on("guildMemberRemove", member => this.onMemberLeave(member));
   }
 
   private static onDiscordReady(): void {
@@ -109,6 +110,17 @@ class StudyBot {
 
     guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} joined the guild.`);
     this.guildContexts[member.guild.id].onMemberJoin(<Discord.GuildMember>member);
+  }  
+
+  private static onMemberLeave(member: Discord.GuildMember | Discord.PartialGuildMember): void {
+    const guildContext = this.guildContexts[member.guild.id];
+    if(member.partial) {
+      guildContext.guildDebug(`Skipping partial member leave for ${DiscordUtils.describeUserForLogs(member.user)}`);
+      return;
+    }
+
+    guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} left the guild.`);
+    this.guildContexts[member.guild.id].onMemberLeave(<Discord.GuildMember>member);
   }  
 }
 

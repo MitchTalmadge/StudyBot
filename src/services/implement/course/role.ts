@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { Course } from "models/course";
-import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
+import { PartialCourse } from "models/course";
+import { CourseUtils } from "utils/course";
 
 export class CourseRoleImplementService {
-  public static async createMainRole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
+  public static async createMainRole(guildContext: GuildContext, course: PartialCourse): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {
         name: CourseUtils.getMainRoleName(course),
@@ -18,7 +18,7 @@ export class CourseRoleImplementService {
     return role;
   }
 
-  public static async createTARole(guildContext: GuildContext, course: Course): Promise<Discord.Role> {
+  public static async createTARole(guildContext: GuildContext, course: PartialCourse): Promise<Discord.Role> {
     const role = await guildContext.guild.roles.create({
       data: {
         name: CourseUtils.getTARoleName(course),

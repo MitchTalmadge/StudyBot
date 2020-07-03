@@ -6,8 +6,8 @@ import _ from "lodash";
 import { Course } from "models/course";
 import { VerificationStatus } from "models/verification-status";
 import { UserDatabaseService } from "services/database/user";
-import { DiscordRoleAssignmentService } from "services/discord/role-assignment";
 import { VerificationImplementService } from "services/implement/verification/implement";
+import { MemberUpdateService } from "services/member-update";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
@@ -89,11 +89,18 @@ export class GuildContext {
     UserDatabaseService.findOrCreateUser(member.user.id, this)
       .then(user => {
         if(user.verificationStatus == VerificationStatus.VERIFIED) {
-          UserDatabaseService.setUserVerified(this, member);
+          MemberUpdateService.queueMarkVerified(this, member);
         }
       })
       .catch(err => {
         this.guildError(`Failed to get user from DB on join for ${DiscordUtils.describeUserForLogs(member.user)}.`, err);
+      });
+  }
+
+  public onMemberLeave(member: Discord.GuildMember): void {
+    MemberUpdateService.queueUnassignAllCourses(this, member, false)
+      .catch(err => {
+        this.guildError(`Failed to unassign courses from member ${DiscordUtils.describeUserForLogs(member.user)} on guild leave.`, err);
       });
   }
 

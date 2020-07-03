@@ -1,7 +1,9 @@
-import { Course } from "models/course";
-import { IWebCatalogService } from "./web-catalog";
-import { Major } from "models/major";
 import axios from "axios";
+import { Course } from "models/course";
+import { Major } from "models/major";
+import { CourseUtils } from "utils/course";
+
+import { IWebCatalogService } from "./web-catalog";
 
 /**
  * Obtains course lists from the University of Utah web catalog.
@@ -28,10 +30,12 @@ export class UtahWebCatalogService implements IWebCatalogService {
     catalogCourses.forEach(catalogCourse => {
       if(catalogCourse.subjectCode.name.toLowerCase() !== major.prefix.toLowerCase())
         return;
+      const courseNumber = catalogCourse.__catalogCourseId.substring(catalogCourse.subjectCode.name.length);
       courses.push({
-        number: catalogCourse.__catalogCourseId.substring(catalogCourse.subjectCode.name.length),
+        key: CourseUtils.getKey(courseNumber, major),
+        major: major,
+        number: courseNumber,
         title: catalogCourse.title,
-        major: major
       });
     });
 

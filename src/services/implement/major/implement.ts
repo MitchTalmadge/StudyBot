@@ -4,9 +4,11 @@ import { GuildContext } from "guild-context";
 import { CourseImplementChannelType, ICourseImplement } from "models/implement/course";
 import { IMajorImplement } from "models/implement/major";
 import { Major } from "models/major";
+import { CourseService } from "services/course";
 import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { DiscordUtils } from "utils/discord";
 
+import { CourseImplementService } from "../course/implement";
 import { MajorCategoryImplementService } from "./category";
 
 export class MajorImplementService {
@@ -102,17 +104,40 @@ export class MajorImplementService {
   }
 
   /**
-   * Removes all empty categories caused by members leaving courses.
+   * Removes all empty course implements and the resulting 
+   * empty major categories for all majors.
+   * @returns A promise that resolves when everything is cleaned up.
+   */
+  public static async cleanUpAll(guildContext: GuildContext): Promise<void> {
+    for(let major of Object.values(guildContext.majors)) {
+      await this.cleanUp(guildContext, major);
+    }
+  }
+
+  /**
+   * Removes all empty course implements and the resulting 
+   * empty major categories for a particular major.
    * @returns A promise that resolves when everything is cleaned up.
    */
   public static async cleanUp(guildContext: GuildContext, major: Major): Promise<void> {
-    const implement = await this.getMajorImplementIfExists(guildContext, major);
+    let implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;
     }
 
+    guildContext.guildDebug(`Cleaning up major ${major.prefix}.`);
+
+    // Clean up the course implements.
+    for(let courseKey of implement.courseImplements.keys()) {
+      await CourseImplementService.deleteCourseImplementIfEmpty(guildContext, {
+        key: courseKey,
+        major
+      });
+    }
+    implement = await this.getMajorImplementIfExists(guildContext, major);
+
     // Sorting will expose empty categories.
-    await this.sortMajorImplement(guildContext, major);
+    await this.sort(guildContext, major);
 
     for(let type of CourseImplementChannelType.values()) {
       // Determine which categories are empty.
@@ -136,7 +161,7 @@ export class MajorImplementService {
    * Re-sorts all aspects of the major implement (channels, roles) based on names.
    * @returns A promise that resolves when sorting is complete.
    */
-  public static async sortMajorImplement(guildContext: GuildContext, major: Major): Promise<void> {
+  public static async sort(guildContext: GuildContext, major: Major): Promise<void> {
     const implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;

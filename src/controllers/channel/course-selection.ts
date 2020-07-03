@@ -4,6 +4,7 @@ import { Course } from "models/course";
 import { Major } from "models/major";
 import { CourseService } from "services/course";
 import { UserDatabaseService } from "services/database/user";
+import { MemberUpdateService } from "services/member-update";
 import { CourseUtils } from "utils/course";
 import { DiscordMessageUtils } from "utils/discord-message";
 
@@ -15,7 +16,7 @@ export class CourseSelectionChannelController extends ChannelController {
     if (message.content.toLowerCase().startsWith("join")) {
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
-          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
+          const validCourseNames = result.validCourses.map(c => c.key);
           if(result.invalidCourseNames.length > 0) {
             DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
@@ -29,7 +30,7 @@ export class CourseSelectionChannelController extends ChannelController {
     } else if (message.content.toLowerCase().startsWith("leave")) {
       this.joinOrLeaveCourses(message, "leave")  
         .then(result => {
-          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
+          const validCourseNames = result.validCourses.map(c => c.key);
           if(result.invalidCourseNames.length > 0) {
             DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have removed you from the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
@@ -44,8 +45,8 @@ export class CourseSelectionChannelController extends ChannelController {
       // Join the courses just in case (also takes care of validation).
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
-          const validCourseNames = result.validCourses.map(c => CourseUtils.convertToString(c));
-          return UserDatabaseService.toggleTAStatusForMember(this.guildContext, message.member, result.validCourses)
+          const validCourseNames = result.validCourses.map(c => c.key);
+          return MemberUpdateService.queueToggleTAStatus(this.guildContext, message.member, result.validCourses)
             .then(() => {
               if(result.invalidCourseNames.length > 0) {
                 DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have toggled your TA status for the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
@@ -113,9 +114,9 @@ export class CourseSelectionChannelController extends ChannelController {
         return Promise.resolve()
           .then(() => {
             if(action == "join")
-              return UserDatabaseService.addCoursesToMember(this.guildContext, message.member, allValidCourses);
+              return MemberUpdateService.queueAssignCourses(this.guildContext, message.member, allValidCourses);
             else
-              return UserDatabaseService.removeCoursesFromMember(this.guildContext, message.member, allValidCourses);
+              return MemberUpdateService.queueUnassignCourses(this.guildContext, message.member, allValidCourses);
           })
           .catch(err => {
             this.guildContext.guildError(`Failed to set courses for member during ${action} request:`, err);

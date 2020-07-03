@@ -1,5 +1,5 @@
 import { GuildContext } from "guild-context";
-import { Course } from "models/course";
+import { Course, PartialCourse } from "models/course";
 import { CourseImplementChannelType,ICourseImplement } from "models/implement/course";
 import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { UserDatabaseService } from "services/database/user";
@@ -18,7 +18,7 @@ export class CourseImplementService {
     return await this.createCourseImplement(guildContext, course);
   }
 
-  public static async getCourseImplementIfExists(guildContext: GuildContext, course: Course): Promise<ICourseImplement | undefined> {
+  public static async getCourseImplementIfExists(guildContext: GuildContext, course: PartialCourse): Promise<ICourseImplement | undefined> {
     const implement = await GuildStorageDatabaseService.getCourseImplement(guildContext, course);
     if(implement) {
       return implement;
@@ -48,11 +48,11 @@ export class CourseImplementService {
       channelIds,
     };
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
-    await MajorImplementService.sortMajorImplement(guildContext, course.major);
+    await MajorImplementService.sort(guildContext, course.major);
     return implement;
   }
 
-  public static async deleteCourseImplementIfEmpty(guildContext: GuildContext, course: Course): Promise<void> {
+  public static async deleteCourseImplementIfEmpty(guildContext: GuildContext, course: PartialCourse): Promise<void> {
     const implement = await this.getCourseImplementIfExists(guildContext, course);
     if(!implement) {
       return;
@@ -62,6 +62,8 @@ export class CourseImplementService {
       return;
     }
 
+    guildContext.guildDebug(`Course ${course.key} is empty and will be cleaned up.`);
+
     for(let type of CourseImplementChannelType.values()) {
       await guildContext.guild.channels.resolve(implement.channelIds[type]).delete();
     }
@@ -69,7 +71,6 @@ export class CourseImplementService {
     await guildContext.guild.roles.resolve(implement.taRoleId).delete();
 
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
-    await MajorImplementService.cleanUp(guildContext, course.major);
   }
 
   // TODO: Repair implement

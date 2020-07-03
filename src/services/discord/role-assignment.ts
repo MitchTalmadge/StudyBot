@@ -4,50 +4,11 @@ import { Course } from "models/course";
 import { VerificationStatus } from "models/verification-status";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
-import { CourseUtils } from "utils/course";
-import { DiscordUtils } from "utils/discord";
 
 import { CourseImplementService } from "../implement/course/implement";
 import { VerificationImplementService } from "../implement/verification/implement";
 export class DiscordRoleAssignmentService {
-  private static roleAssignmentQueues: { [guildId: string]: Promise<void> } = {};
-
-  /**
-   * Queues a promise by appending it to the guild's queue chain.
-   * @param guildContext The guild initiating the queue request.
-   * @param promiseFunc A function that returns the promise to execute.
-   */
-  private static queue(guildContext: GuildContext, promiseFunc: () => Promise<any>): Promise<void> {
-    if (!this.roleAssignmentQueues[guildContext.guild.id]) {
-      this.roleAssignmentQueues[guildContext.guild.id] = Promise.resolve();
-    }
-
-    this.roleAssignmentQueues[guildContext.guild.id] =
-      this.roleAssignmentQueues[guildContext.guild.id].finally(promiseFunc);
-
-    return this.roleAssignmentQueues[guildContext.guild.id];
-  }
-
-  /**
-   * Queues role computation for a member, which will automatically determine and apply role changes.
-   * @param guildContext The guild context.
-   * @param discordMember The member whose roles to update.
-   * @param courses The courses to add as roles.
-   */
-  public static queueRoleComputation(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    return this.queue(
-      guildContext,
-      () => this.computeAndApplyRoleChanges(guildContext, discordMember))
-      .then(() => {
-        guildContext.guildLog(`Roles updated for member ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
-      })
-      .catch(err => {
-        guildContext.guildError(`Failed to assign roles to member ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
-        return Promise.reject(err);
-      });
-  }
-
-  private static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
+  public static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
     const user = await UserDatabaseService.findOrCreateUser(discordMember.id, guildContext);
 
     const rolesToAdd: string[] = [];
@@ -65,10 +26,11 @@ export class DiscordRoleAssignmentService {
     }
 
     // Courses
+    //TODO: Won't work for non-catalog majors
     for(let courses of Object.values(guildContext.courses)) {
       for(let course of courses) {
         // If the user is assigned to this course...
-        const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === CourseUtils.convertToString(course));
+        const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === course.key);
         if(assignment) {
           // (User is assigned to course.)
           const courseImplement = await CourseImplementService.getOrCreateCourseImplement(guildContext, course);
@@ -95,13 +57,7 @@ export class DiscordRoleAssignmentService {
     // Apply assignments.
     if (rolesToAdd.length > 0)
       discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment.");
-    if (rolesToRemove.length > 0) {
+    if (rolesToRemove.length > 0)
       discordMember = await discordMember.roles.remove(rolesToRemove, "StudyBot automatic role removal.");
-    
-      // Delete implements of courses no longer used by anyone.
-      for (let course of coursesToRemove) {
-        await CourseImplementService.deleteCourseImplementIfEmpty(guildContext, course);
-      }
-    }
   }
 }

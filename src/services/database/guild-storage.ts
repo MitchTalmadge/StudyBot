@@ -1,7 +1,6 @@
-import { GuildStorage, IGuildStorage } from "models/database/guild-storage";
-import { Course } from "models/course";
-import { CourseUtils } from "utils/course";
 import { GuildContext } from "guild-context";
+import { Course, PartialCourse } from "models/course";
+import { GuildStorage, IGuildStorage } from "models/database/guild-storage";
 import { ICourseImplement } from "models/implement/course";
 import { IMajorImplement } from "models/implement/major";
 import { IVerificationImplement } from "models/implement/verification";
@@ -41,26 +40,28 @@ export class GuildStorageDatabaseService {
     await storage.save();
   }
 
-  public static async getCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement | undefined> {
+  public static async getCourseImplement(guildContext: GuildContext, course: PartialCourse): Promise<ICourseImplement | undefined> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorImplement = storage.majorImplements.get(course.major.prefix);
     if(!majorImplement)
       return null;
-    return majorImplement.courseImplements.get(CourseUtils.convertToString(course));
+    return majorImplement.courseImplements.get(course.key);
   }
 
-  public static async setCourseImplement(guildContext: GuildContext, course: Course, implement: ICourseImplement): Promise<void> {
+  public static async setCourseImplement(guildContext: GuildContext, course: PartialCourse, implement: ICourseImplement): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     const majorImplement = storage.majorImplements.get(course.major.prefix);
     if(!majorImplement) {
-      guildContext.guildError(`Tried to set a course implement when major implement does not exist. Couse: ${CourseUtils.convertToString(course)}`);
+      guildContext.guildError(`Tried to set a course implement when major implement does not exist. Couse: ${course.key}`);
       return;
     }
 
+    guildContext.guildDebug(`Updating with ${course.key}:`, implement);
+
     if (implement)
-      majorImplement.courseImplements.set(CourseUtils.convertToString(course), implement);
+      majorImplement.courseImplements.set(course.key, implement);
     else
-      majorImplement.courseImplements.delete(CourseUtils.convertToString(course));
+      majorImplement.courseImplements.delete(course.key);
 
     await storage.save();
   }

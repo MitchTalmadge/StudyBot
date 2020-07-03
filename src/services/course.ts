@@ -1,8 +1,10 @@
-import { Course } from "models/course";
 import { GuildContext } from "guild-context";
-import { IWebCatalogService } from "./web-catalog/web-catalog";
-import { Major } from "models/major";
 import _ from "lodash";
+import { Course } from "models/course";
+import { Major } from "models/major";
+import { CourseUtils } from "utils/course";
+
+import { IWebCatalogService } from "./web-catalog/web-catalog";
 
 export class CourseService {
   /**
@@ -39,6 +41,7 @@ export class CourseService {
     const majorCourses = guildContext.courses[major.prefix];
     if (majorCourses.length === 0) {
       return {
+        key: CourseUtils.getKey(number, major),
         major: major,
         number: number
       };

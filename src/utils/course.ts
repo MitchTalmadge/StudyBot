@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
-import { Course } from "models/course";
+import { Course, PartialCourse } from "models/course";
+import { Major } from "models/major";
 import { ConfigService } from "services/config";
 
 export class CourseUtils {
@@ -27,28 +28,28 @@ export class CourseUtils {
     return result;
   }
 
-  public static convertToString(course: Course): string {
-    return `${course.major.prefix}-${course.number}`;
+  public static getKey(courseNumber: string, major: Major): string {
+    return `${major.prefix}-${courseNumber}`;
   }
 
-  public static getMainRoleName(course: Course): string {
+  public static getMainRoleName(course: PartialCourse): string {
     if (ConfigService.getConfig().enablePrivacyMode) {
       const hash = crypto.createHash("sha256");
-      return hash.update(this.convertToString(course)).digest("hex").substr(0, 10);
+      return hash.update(course.key).digest("hex").substr(0, 10);
     } else {
-      return this.convertToString(course);
+      return course.key;
     }
   }
 
-  public static getTARoleName(course: Course): string {
-    return `${this.convertToString(course)}-ta`;
+  public static getTARoleName(course: PartialCourse): string {
+    return `${course.key}-ta`;
   }
 
-  public static getChatChannelName(course: Course): string {
-    return this.convertToString(course);
+  public static getChatChannelName(course: PartialCourse): string {
+    return course.key;
   }
 
-  public static getVoiceChannelName(course: Course): string {
-    return `${this.convertToString(course)}-voice`;
+  public static getVoiceChannelName(course: PartialCourse): string {
+    return `${course.key}-voice`;
   }
 }

@@ -4,6 +4,7 @@ import { IUser } from "models/database/user";
 import { VerificationStatus } from "models/verification-status";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
+import { MemberUpdateService } from "services/member-update";
 import { VerifierService } from "services/verification/verifier";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
 import { DiscordUtils } from "utils/discord";
@@ -56,7 +57,7 @@ export class VerificationChannelController extends ChannelController {
             VerificationChannelController.MESSAGE_DELAY, 
             message.channel, 
             `${message.author}, you are already verified!`);
-          await UserDatabaseService.setUserVerified(this.guildContext, message.member);
+          await MemberUpdateService.queueMarkVerified(this.guildContext, message.member);
           return;
         case VerificationStatus.CODE_SENT:
           // Check if the user has input a code.
@@ -66,7 +67,7 @@ export class VerificationChannelController extends ChannelController {
               VerificationChannelController.MESSAGE_DELAY, 
               message.channel, 
               `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
-            UserDatabaseService.setUserVerified(this.guildContext, message.member)
+            MemberUpdateService.queueMarkVerified(this.guildContext, message.member)
               .catch(err => {
                 console.error(`Could not set user with ID ${message.author.id} as verified`, err);
                 DiscordMessageUtils.sendTempMessage(
