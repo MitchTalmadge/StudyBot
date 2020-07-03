@@ -33,15 +33,21 @@ export class ModeratorCommandController extends CommandController {
   }
 
   private async runWhoisCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
-    if(tokens.length != 3 || message.mentions.users.size != 1) {
-      message.reply("please mention one user.");
+    if(tokens.length != 3) {
+      message.reply("please mention or give ID of one user.");
+      return;
+    }
+    const mentionMatch = tokens[2].match(/\d+/);
+    if(!mentionMatch) {
+      message.reply("please mention or give ID of one user.");
       return;
     }
 
-    const discordUser = message.mentions.users.first();
-    const user = await UserDatabaseService.findOrCreateUser(discordUser.id, this.guildContext);
+    const userId = mentionMatch[0];
+    const user = await UserDatabaseService.findOrCreateUser(userId);
 
     const guildStrings: string[] = [];
+    let member: Discord.GuildMember;
     for(let guildEntry of user.guilds.entries()) {
       const guildId = guildEntry[0];
       const guild = this.guildContext.guild.client.guilds.resolve(guildId);
@@ -49,20 +55,37 @@ export class ModeratorCommandController extends CommandController {
       
       let guildString = `  - "${guild.name}" (ID ${guild.id})`;
 
+      // Nickname
+      member = guild.members.resolve(userId);
+      guildString += `\n    - Display Name: ${member ? member.displayName : "Unknown."}`;
+
       // Courses
       guildString += "\n    - Courses:";
-      for(let course of guildMeta.courses) {
-        guildString += `\n      - ${course.courseKey} (TA: ${course.isTA})`;
+      if(guildMeta.courses.length == 0) {
+        guildString += " None assigned.";
+      } else {
+        for(let course of guildMeta.courses) {
+          guildString += `\n      - ${course.courseKey} (TA: ${course.isTA})`;
+        }
       }
 
       guildStrings.push(guildString);
     }
 
-    message.reply(`details of ${discordUser.username}#${discordUser.discriminator} (ID ${discordUser.id}):\n`
-    + `- Verification Status: ${VerificationStatus[user.verificationStatus]}\n`
+    let reply = "";
+    if(member) {
+      reply = `details of ${member.user.username}#${member.user.discriminator} (ID ${userId}):\n`;
+    } else {
+      reply = `details of unresolved user (ID ${userId}):\n`;
+    }
+    
+    reply +=  
+    `- Verification Status: ${VerificationStatus[user.verificationStatus]}\n`
     + `  - Student ID: ${user.studentId}\n`
-    + "- Network Status:\n"
-    + guildStrings.join("\n"));
+    + `- Network Status: ${guildStrings.length == 0 ? "Not a member of any network guild." : ""}\n`
+    + guildStrings.join("\n");
+
+    message.reply(reply);
   }
 
   private isModerator(member: Discord.GuildMember): boolean {
