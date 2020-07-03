@@ -5,6 +5,7 @@ import * as Discord from "discord.js";
 import _ from "lodash";
 import { Course } from "models/course";
 import { VerificationStatus } from "models/verification-status";
+import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { VerificationImplementService } from "services/implement/verification/implement";
 import { MemberUpdateService } from "services/member-update";
@@ -86,14 +87,25 @@ export class GuildContext {
   }
 
   public onMemberJoin(member: Discord.GuildMember): void {
-    UserDatabaseService.findOrCreateUser(member.user.id, this)
-      .then(user => {
-        if(user.verificationStatus == VerificationStatus.VERIFIED) {
-          MemberUpdateService.queueMarkVerified(this, member);
+    BanService.kickIfBanned(member)
+      .catch(err => {
+        this.guildError(`Failed to ensure ${DiscordUtils.describeUserForLogs(member.user)} was kicked if banned:`, err);
+      })
+      .then(wasBanned => {
+        if(!wasBanned) {
+          return UserDatabaseService.findOrCreateUser(member.user.id, this);
         }
       })
       .catch(err => {
         this.guildError(`Failed to get user from DB on join for ${DiscordUtils.describeUserForLogs(member.user)}.`, err);
+      })
+      .then(user => {
+        if(!user)
+          return;
+
+        if(user.verificationStatus == VerificationStatus.VERIFIED) {
+          MemberUpdateService.queueMarkVerified(this, member);
+        }
       });
   }
 

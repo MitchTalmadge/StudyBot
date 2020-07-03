@@ -1,6 +1,7 @@
 // eslint-disable-next-line quotes
-import mongoose, { Document, Schema } from "mongoose";
 import { Moment } from "moment";
+import mongoose, { Document, Schema } from "mongoose";
+
 import { VerificationStatus } from "../verification-status";
 
 export interface IUser extends Document {
@@ -14,7 +15,7 @@ export interface IUser extends Document {
     coursesLastUpdated: Moment;
   }>
 
-  jailed: boolean;
+  banned: boolean;
 }
 
 export interface IUserCourseAssignment {
@@ -45,11 +46,18 @@ export const UserSchema = new Schema({
     default: {}
   },
 
-  jailed: { type: Schema.Types.Boolean, required: true, default: false }
+  banned: { type: Schema.Types.Boolean, required: true, default: false },
+
+  // Deprecated
+  jailed: { type: Schema.Types.Boolean, required: false }
 });
 
-UserSchema.post("init", (_doc) => {
-  // TODO: Migrations
+UserSchema.post("init", doc => {
+  // Migrate jailed to banned
+  if(doc["jailed"] != undefined) {
+    doc["banned"] = doc["jailed"];
+    doc["jailed"] = undefined;
+  }
 });
 
 export const User = mongoose.model<IUser>("User", UserSchema);

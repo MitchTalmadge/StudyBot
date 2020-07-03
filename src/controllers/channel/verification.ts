@@ -68,6 +68,7 @@ export class VerificationChannelController extends ChannelController {
               VerificationChannelController.MESSAGE_DELAY, 
               message.channel, 
               `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
+            // TODO: Mark verified on entire network
             await MemberUpdateService.queueMarkVerified(this.guildContext, message.member)
               .catch(err => {
                 console.error(`Could not set user with ID ${message.author.id} as verified`, err);

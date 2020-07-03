@@ -79,8 +79,14 @@ export class UserDatabaseService {
     await user.save();
   }
 
+  public static async setBanned(discordUserId: string, banned = true): Promise<void> {
+    const user = await this.findOrCreateUser(discordUserId);
+    user.banned = banned;
+    await user.save();
+  }
+
   public static async leaveGuild(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
+    const user = await this.findOrCreateUser(discordMember.user.id);
 
     user.guilds.delete(guildContext.guild.id);
     await user.save();

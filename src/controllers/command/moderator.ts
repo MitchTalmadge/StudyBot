@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { VerificationStatus } from "models/verification-status";
+import { BanService } from "services/ban";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
 import { MemberUpdateService } from "services/member-update";
@@ -20,6 +21,12 @@ export class ModeratorCommandController extends CommandController {
     tokens[0] = tokens[0].substr(2);
 
     switch(tokens[0]) {
+      case "ban":
+        this.runBanCommand(message, tokens);
+        break;
+      case "unban":
+        this.runUnbanCommand(message, tokens);
+        break;
       case "verify":
         this.runVerifyCommand(message, tokens);
         break;
@@ -37,6 +44,40 @@ export class ModeratorCommandController extends CommandController {
       "here are the valid commands:\n"
       + "\t`!!whois <Discord User ID or Mention>`\t\tGives info about a user in the server (verification status, etc.)\n"
       + "\t`!!verify email|manual <Student ID> <Discord User ID or Mention>`\t\tEither re-send a verification email, or forcefully assign the given student ID to the user.");
+  }
+
+  
+
+  private async runBanCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+    if(tokens.length != 2) {
+      message.reply("please mention or give ID of one user.");
+      return;
+    }
+    const mentionMatch = tokens[1].match(/\d+/);
+    if(!mentionMatch) {
+      message.reply("please mention or give ID of one user.");
+      return;
+    }
+
+    const userId = mentionMatch[0];
+    await BanService.ban(userId);
+    message.reply(`the user with ID ${userId} has been banned from the network.`);
+  }
+
+  private async runUnbanCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+    if(tokens.length != 2) {
+      message.reply("please mention or give ID of one user.");
+      return;
+    }
+    const mentionMatch = tokens[1].match(/\d+/);
+    if(!mentionMatch) {
+      message.reply("please mention or give ID of one user.");
+      return;
+    }
+
+    const userId = mentionMatch[0];
+    await BanService.unban(userId);
+    message.reply(`the user with ID ${userId} has been unbanned from the network.`);
   }
 
   private async runVerifyCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
@@ -140,6 +181,7 @@ export class ModeratorCommandController extends CommandController {
     reply +=  
     `- Verification Status: ${VerificationStatus[user.verificationStatus]}\n`
     + `  - Student ID: ${user.studentId}\n`
+    + `- Banned: ${user.banned}\n`
     + `- Network Status: ${guildStrings.length == 0 ? "Not a member of any network guild." : ""}\n`
     + guildStrings.join("\n");
 

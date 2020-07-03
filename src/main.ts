@@ -7,10 +7,10 @@ import { MajorMap } from "./models/major-map";
 import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database/database";
 
-class StudyBot {
-  private static client: Discord.Client;
+export class StudyBot {
+  public static client: Discord.Client;
 
-  private static guildContexts: { [guildId: string]: GuildContext } = {};
+  public static guildContexts: { [guildId: string]: GuildContext } = {};
 
   public static async init() {
     // Load configuration.
@@ -46,13 +46,14 @@ class StudyBot {
         intents: ["GUILDS", "GUILD_MEMBERS", "GUILD_MESSAGES", "DIRECT_MESSAGES"]
       }
     });
-    await this.client.login(ConfigService.getConfig().discordToken);
 
     this.client.on("ready", () => this.onDiscordReady());
     this.client.on("rateLimit", data => this.onRateLimit(data));
     this.client.on("message", msg => this.onMessageReceived(msg));
     this.client.on("guildMemberAdd", member => this.onMemberJoin(member));
     this.client.on("guildMemberRemove", member => this.onMemberLeave(member));
+
+    await this.client.login(ConfigService.getConfig().discordToken);
   }
 
   private static onDiscordReady(): void {

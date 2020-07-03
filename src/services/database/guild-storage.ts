@@ -56,8 +56,6 @@ export class GuildStorageDatabaseService {
       return;
     }
 
-    guildContext.guildDebug(`Updating with ${course.key}:`, implement);
-
     if (implement)
       majorImplement.courseImplements.set(course.key, implement);
     else
