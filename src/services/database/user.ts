@@ -48,7 +48,9 @@ export class UserDatabaseService {
         });
 
     const guildData = user.guilds.get(guildContext.guild.id);
-    guildData.courses = _.unionBy(guildData.courses, serializedCourses, course => course.courseKey);
+    guildData.courses = _
+      .unionBy(guildData.courses, serializedCourses, course => course.courseKey)
+      .sort((a, b) => a.courseKey.localeCompare(b.courseKey));
     guildData.coursesLastUpdated = moment();
     await user.save();
   }
@@ -58,7 +60,9 @@ export class UserDatabaseService {
     const courseKeys = courses.map(course => course.key);
 
     const guildData = user.guilds.get(guildContext.guild.id);
-    guildData.courses = guildData.courses.filter(course => !courseKeys.includes(course.courseKey));
+    guildData.courses = guildData.courses
+      .filter(course => !courseKeys.includes(course.courseKey))
+      .sort((a, b) => a.courseKey.localeCompare(b.courseKey));
     guildData.coursesLastUpdated = moment();
     await user.save();
   }
