@@ -3,6 +3,7 @@ import { GuildContext } from "guild-context";
 import { Course } from "models/course";
 import { DiscordUtils } from "utils/discord";
 
+import { BanService } from "./ban";
 import { UserDatabaseService } from "./database/user";
 import { DiscordRoleAssignmentService } from "./discord/role-assignment";
 import { MajorImplementService } from "./implement/major/implement";
@@ -92,6 +93,8 @@ export class MemberUpdateService {
 
     await UserDatabaseService.setUserVerified(member.user.id);
 
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+    const banned = await BanService.banIfBannedStudentId(member.user.id);
+    if(!banned)    
+      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
   }
 }

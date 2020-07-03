@@ -130,6 +130,15 @@ export class UserDatabaseService {
     return user;
   }
 
+  public static async getUsersByStudentId(studentId: string, verifiedOnly = false): Promise<IUser[]> {
+    const query = { "studentId": studentId };
+    if(verifiedOnly)
+      query["verificationStatus"] = VerificationStatus.VERIFIED;
+    const users = await User.find(query).exec();
+
+    return users;
+  }
+
   public static async setUserVerified(discordUserId: string, studentId?: string): Promise<void> {
     const user = await this.findOrCreateUser(discordUserId);
 
