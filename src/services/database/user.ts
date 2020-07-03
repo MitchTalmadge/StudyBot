@@ -107,8 +107,8 @@ export class UserDatabaseService {
     return users;
   }
 
-  public static async generateAndStoreVerificationCode(discordUser: Discord.User, studentId: string): Promise<string> {
-    const user = await this.findOrCreateUser(discordUser.id);
+  public static async generateAndStoreVerificationCode(discordUserId: string, studentId: string): Promise<string> {
+    const user = await this.findOrCreateUser(discordUserId);
     const verificationCode = VerificationUtils.generateVerificationCode();
 
     user.studentId = studentId;
@@ -124,11 +124,13 @@ export class UserDatabaseService {
     return user;
   }
 
-  public static async setUserVerified(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.id);
+  public static async setUserVerified(discordUserId: string, studentId?: string): Promise<void> {
+    const user = await this.findOrCreateUser(discordUserId);
 
     user.verificationStatus = VerificationStatus.VERIFIED;
     user.verificationCode = undefined;
+    if(studentId)
+      user.studentId = studentId;
     await user.save();
   }
 }

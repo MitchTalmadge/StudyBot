@@ -5,6 +5,7 @@ import { VerificationStatus } from "models/verification-status";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
 import { MemberUpdateService } from "services/member-update";
+import { VerificationService } from "services/verification/verification";
 import { VerifierService } from "services/verification/verifier";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
 import { DiscordUtils } from "utils/discord";
@@ -67,7 +68,7 @@ export class VerificationChannelController extends ChannelController {
               VerificationChannelController.MESSAGE_DELAY, 
               message.channel, 
               `Success! ${message.author}, you will be able to speak momentarily. Thanks for helping to keep the server safe!`);
-            MemberUpdateService.queueMarkVerified(this.guildContext, message.member)
+            await MemberUpdateService.queueMarkVerified(this.guildContext, message.member)
               .catch(err => {
                 console.error(`Could not set user with ID ${message.author.id} as verified`, err);
                 DiscordMessageUtils.sendTempMessage(
@@ -90,30 +91,28 @@ export class VerificationChannelController extends ChannelController {
 
     // Check if the input is a student ID.
     if(!this.verifier.looksLikeStudentID(contents)) {
-      await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Sorry ${message.author}, I don't know what you're trying to do! If you want to become verified, just say your student ID here.`);
+      await DiscordMessageUtils.sendTempMessage(
+        VerificationChannelController.MESSAGE_DELAY, 
+        message.channel, 
+        `Sorry ${message.author}, what you typed did not look like a student ID. If you want to become verified, just say your student ID here.`);
       return;
     }
 
     // The user has put in their student ID.
-    await DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Ok, ${message.author}, just one more step. I am sending a code to your student email address. Just type the code here to become verified! Remember to check your spam.`);
+    await DiscordMessageUtils.sendTempMessage(
+      VerificationChannelController.MESSAGE_DELAY, 
+      message.channel, 
+      `Ok, ${message.author}, just one more step. I am sending a code to your student email address. Just type the code here to become verified! Remember to check your spam.`);
     
     // Obtain a verification code.
-    let verificationCode: string;
-    try {
-      verificationCode = await UserDatabaseService.generateAndStoreVerificationCode(message.author, contents);
-    } catch (err) {
-      this.guildContext.guildError("Failed to generate verification code:", err);
-      DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong while I was generating your code. Please try again or ask an admin for help!`);
-      return;
-    }
-
-    // Send the verification code.
-    try {
-      await this.verifier.sendVerificationEmail(contents, message.author, verificationCode);
-    } catch (err) {
-      this.guildContext.guildError("Failed to send verification email:", err);
-      DiscordMessageUtils.sendTempMessage(VerificationChannelController.MESSAGE_DELAY, message.channel, `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
-      return;
-    }
+    await VerificationService.initiateByEmail(message.author, contents)
+      .catch(err => {
+        this.guildContext.guildError("Failed to initiate verification:", err);
+        DiscordMessageUtils.sendTempMessage(
+          VerificationChannelController.MESSAGE_DELAY, 
+          message.channel, 
+          `Oops! Sorry ${message.author}, something went wrong and I couldn't send out the verification email. Please try again or ask an admin for help!`);
+        return;
+      });
   }
 }

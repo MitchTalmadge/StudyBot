@@ -90,7 +90,7 @@ export class MemberUpdateService {
   private static async markVerified(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
     guildContext.guildLog(`Marking ${DiscordUtils.describeUserForLogs(member.user)} verified.`);
 
-    await UserDatabaseService.setUserVerified(guildContext, member);
+    await UserDatabaseService.setUserVerified(member.user.id);
 
     await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
   }
