@@ -22,6 +22,7 @@ export interface DatabaseConfig {
   auth: boolean;
   username?: string;
   password?: string;
+  authSource?: string;
 }
 
 export interface WebConfig {

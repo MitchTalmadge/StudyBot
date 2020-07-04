@@ -13,7 +13,8 @@ export class DatabaseService {
     this.mongooseInstance = await mongoose.connect(`mongodb://${dbConfig.address}/${dbConfig.name}`, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      auth
+      auth,
+      authSource: dbConfig.authSource
     });
   }
 

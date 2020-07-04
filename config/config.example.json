@@ -6,7 +6,8 @@
     "name": "studybot",
     "auth": true,
     "username": "admin",
-    "password": "foobar"
+    "password": "foobar",
+    "authSource": "admin"
   },
 
   "web": {

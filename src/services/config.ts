@@ -71,6 +71,9 @@ export class ConfigService {
       if(!this.config.database.password) {
         throw Error("Database auth is enabled but password is missing or empty.");
       }
+      if(!this.config.database.authSource) {
+        throw Error("Database auth is enabled but authSource is missing or empty.");
+      }
     }
   }
 
