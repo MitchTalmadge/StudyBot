@@ -113,6 +113,8 @@ export class MemberUpdateService {
   }
 
   private static async synchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
+    guildContext.guildLog(`Synchronizing roles for ${DiscordUtils.describeUserForLogs(member.user)}.`);
+
     await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
   }
 }
