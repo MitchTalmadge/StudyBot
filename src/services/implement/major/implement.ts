@@ -142,7 +142,7 @@ export class MajorImplementService {
       return;
     }
 
-    guildContext.guildDebug(`Cleaning up major ${major.prefix}.`);
+    guildContext.guildLog(`Scaling in major ${major.prefix}.`);
 
     for(let type of CourseImplementChannelType.values()) {
       // Determine which categories are empty.

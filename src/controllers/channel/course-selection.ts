@@ -23,7 +23,7 @@ export class CourseSelectionChannelController extends ChannelController {
           }
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410 eae2100`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
@@ -37,7 +37,7 @@ export class CourseSelectionChannelController extends ChannelController {
           }
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410 eae2100`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
@@ -55,12 +55,12 @@ export class CourseSelectionChannelController extends ChannelController {
             });
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410 eae2100`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410`);
           // TODO: Better example.
         });
     } else {
       //TODO: Better example
-      DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410 eae2100'`);
+      DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410'`);
     }
   }
 
