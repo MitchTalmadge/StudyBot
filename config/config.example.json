@@ -3,7 +3,10 @@
 
   "database": {
     "address": "127.0.0.1:27017",
-    "name": "studybot"
+    "name": "studybot",
+    "auth": true,
+    "username": "admin",
+    "password": "foobar"
   },
 
   "web": {

@@ -19,6 +19,9 @@ export interface Config {
 export interface DatabaseConfig {
   address: string;
   name: string;
+  auth: boolean;
+  username?: string;
+  password?: string;
 }
 
 export interface WebConfig {

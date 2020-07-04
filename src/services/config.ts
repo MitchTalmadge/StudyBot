@@ -64,6 +64,14 @@ export class ConfigService {
     if (!this.config.database.name) {
       throw Error("The database name is missing or empty.");
     }
+    if(this.config.database.auth) {
+      if(!this.config.database.username) {
+        throw Error("Database auth is enabled but username is missing or empty.");
+      }
+      if(!this.config.database.password) {
+        throw Error("Database auth is enabled but password is missing or empty.");
+      }
+    }
   }
 
   private static validateWebConfig(): void {
