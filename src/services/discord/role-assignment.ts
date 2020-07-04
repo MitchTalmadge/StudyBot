@@ -19,8 +19,10 @@ export class DiscordRoleAssignmentService {
     if(ConfigService.getConfig().verification.enabled) {
       const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
       if(user.verificationStatus === VerificationStatus.VERIFIED) {
+        // TODO: Only add if missing
         rolesToAdd.push(verificationImplement.roleId);
       } else {
+        // TODO: Only remove if exists
         rolesToRemove.push(verificationImplement.roleId);
       }
     }
@@ -34,18 +36,22 @@ export class DiscordRoleAssignmentService {
         if(assignment) {
           // (User is assigned to course.)
           const courseImplement = await CourseImplementService.getOrCreateCourseImplement(guildContext, course);
+          // TODO: Only add if missing
           rolesToAdd.push(courseImplement.mainRoleId);
 
           // Check TA status.
           if(assignment.isTA) {
+            // TODO: Only add if missing
             rolesToAdd.push(courseImplement.taRoleId);
           } else {
+            // TODO: Only remove if exists
             rolesToRemove.push(courseImplement.taRoleId);
           }
         } else {
           // (User is not assigned to course.)
           const courseImplement = await CourseImplementService.getCourseImplementIfExists(guildContext, course);
           if(courseImplement) {
+            // TODO: Only remove if exists
             rolesToRemove.push(courseImplement.mainRoleId);
             rolesToRemove.push(courseImplement.taRoleId);
             coursesToRemove.push(course);
