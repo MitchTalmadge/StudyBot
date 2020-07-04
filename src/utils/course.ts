@@ -1,5 +1,5 @@
 import * as crypto from "crypto";
-import { Course, PartialCourse } from "models/course";
+import { PartialCourse } from "models/course";
 import { Major } from "models/major";
 import { ConfigService } from "services/config";
 
@@ -12,6 +12,10 @@ export class CourseUtils {
 
     // Break into parts and categorize ("cs", "1410"; "phys", "2220")
     let result: { [majorPrefix: string]: string[] } = {};
+
+    if(!tokens) // No matches found.
+      return result;
+      
     tokens.forEach(token => {
       const parts = token.match(regex);
       if (!result[parts[1]]) {
