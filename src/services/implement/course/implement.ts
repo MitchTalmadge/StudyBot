@@ -48,7 +48,6 @@ export class CourseImplementService {
       channelIds,
     };
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
-    await MajorImplementService.sort(guildContext, course.major);
     return implement;
   }
 

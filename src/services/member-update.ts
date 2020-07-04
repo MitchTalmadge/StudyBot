@@ -38,7 +38,7 @@ export class MemberUpdateService {
 
     await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
 
-    await MajorImplementService.cleanUpAll(guildContext);
+    await MajorImplementService.cleanUpImplements(guildContext);
   }
 
   public static queueUnassignCourses(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -52,7 +52,7 @@ export class MemberUpdateService {
 
     await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
 
-    await MajorImplementService.cleanUpAll(guildContext);
+    await MajorImplementService.cleanUpImplements(guildContext);
   } 
 
   public static queueUnassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember, updateRoles: boolean): Promise<void> {
@@ -67,7 +67,7 @@ export class MemberUpdateService {
     if(updateRoles)
       await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
 
-    await MajorImplementService.cleanUpAll(guildContext);
+    await MajorImplementService.cleanUpImplements(guildContext);
   } 
 
   public static queueToggleTAStatus(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
@@ -81,7 +81,7 @@ export class MemberUpdateService {
 
     await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
 
-    await MajorImplementService.cleanUpAll(guildContext);
+    await MajorImplementService.cleanUpImplements(guildContext);
   }
 
   public static queueMarkVerified(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {

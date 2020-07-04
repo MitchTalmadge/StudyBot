@@ -9,6 +9,7 @@ import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseImplementService } from "../course/implement";
+import { VerificationImplementService } from "../verification/implement";
 import { MajorCategoryImplementService } from "./category";
 
 export class MajorImplementService {
@@ -104,40 +105,44 @@ export class MajorImplementService {
   }
 
   /**
-   * Removes all empty course implements and the resulting 
-   * empty major categories for all majors.
+   * Prunes and sorts all major implements and their course implement children.
    * @returns A promise that resolves when everything is cleaned up.
    */
-  public static async cleanUpAll(guildContext: GuildContext): Promise<void> {
+  public static async cleanUpImplements(guildContext: GuildContext): Promise<void> {
+    // Clean up course implements
     for(let major of Object.values(guildContext.majors)) {
-      await this.cleanUp(guildContext, major);
+      let implement = await this.getMajorImplementIfExists(guildContext, major);
+      if (!implement) {
+        continue;
+      }
+
+      for(let courseKey of implement.courseImplements.keys()) {
+        await CourseImplementService.deleteCourseImplementIfEmpty(guildContext, {
+          key: courseKey,
+          major
+        });
+      }
+    }
+
+    // Sort everything
+    await this.sortAll(guildContext);
+
+    // Scale in
+    for(let major of Object.values(guildContext.majors)) {
+      await this.scaleIn(guildContext, major);
     }
   }
 
   /**
-   * Removes all empty course implements and the resulting 
-   * empty major categories for a particular major.
-   * @returns A promise that resolves when everything is cleaned up.
+   * Removes empty overflow categories.
    */
-  public static async cleanUp(guildContext: GuildContext, major: Major): Promise<void> {
+  private static async scaleIn(guildContext: GuildContext, major: Major): Promise<void> {
     let implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;
     }
 
     guildContext.guildDebug(`Cleaning up major ${major.prefix}.`);
-
-    // Clean up the course implements.
-    for(let courseKey of implement.courseImplements.keys()) {
-      await CourseImplementService.deleteCourseImplementIfEmpty(guildContext, {
-        key: courseKey,
-        major
-      });
-    }
-    implement = await this.getMajorImplementIfExists(guildContext, major);
-
-    // Sorting will expose empty categories.
-    await this.sort(guildContext, major);
 
     for(let type of CourseImplementChannelType.values()) {
       // Determine which categories are empty.
@@ -157,11 +162,75 @@ export class MajorImplementService {
     }
   }
 
+  public static async sortAll(guildContext: GuildContext): Promise<void> {
+    await this.sortAllRoles(guildContext);
+    
+    for(let major of Object.values(guildContext.majors)) {
+      await this.sortChannels(guildContext, major);
+    }
+  }
+
+  private static async sortAllRoles(guildContext: GuildContext): Promise<void> {
+    guildContext.guildLog("Sorting all roles...");
+
+    const verifiedRole = guildContext.guild.roles.resolve((await VerificationImplementService.getOrCreateVerificationImplement(guildContext)).roleId);
+    let mainRoles: Discord.Role[] = [];
+    let taRoles: Discord.Role[] = [];
+
+    // Consolidate all roles for all majors
+    for(let major of Object.values(guildContext.majors)) {
+      const implement = await this.getMajorImplementIfExists(guildContext, major);
+      if (!implement) {
+        continue;
+      }
+
+      for(let courseImplement of implement.courseImplements.values()) {
+        const mainRole = guildContext.guild.roles.resolve(courseImplement.mainRoleId);
+        const taRole = guildContext.guild.roles.resolve(courseImplement.taRoleId);
+        mainRoles.push(mainRole);
+        taRoles.push(taRole);
+      }
+    }
+
+    // Pre-sort roles
+    mainRoles = mainRoles.sort((roleA, roleB) => roleA.name.localeCompare(roleB.name));
+    taRoles = taRoles.sort((roleA, roleB) => roleA.name.localeCompare(roleB.name));
+
+    // Calculate role positions
+    const rolePositions: Discord.RolePosition[] = [];
+    let nextPosition = 1;
+    rolePositions.push({
+      role: verifiedRole,
+      position: nextPosition
+    });
+    nextPosition++;
+    
+    for(let role of mainRoles) {
+      rolePositions.push({
+        role,
+        position: nextPosition
+      });
+      nextPosition++;
+    }
+
+    for(let role of taRoles) {
+      rolePositions.push({
+        role,
+        position: nextPosition
+      });
+      nextPosition++;
+    }
+
+    // Submit the positions to Discord.
+    await guildContext.guild.setRolePositions(rolePositions);
+  }
+
   /**
-   * Re-sorts all aspects of the major implement (channels, roles) based on names.
+   * Sorts the major implement channels by name, taking into account the overflow categories.
    * @returns A promise that resolves when sorting is complete.
    */
-  public static async sort(guildContext: GuildContext, major: Major): Promise<void> {
+  private static async sortChannels(guildContext: GuildContext, major: Major): Promise<void> {
+    guildContext.guildLog(`Sorting channels for major ${major.prefix}`);
     const implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;
@@ -217,8 +286,6 @@ export class MajorImplementService {
         nextAvailablePosition++;
       }
     }    
-
-    // TODO: Roles
   }
 
   private static async migrateCourseChannel(
