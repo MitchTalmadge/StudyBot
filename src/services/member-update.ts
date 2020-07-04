@@ -55,20 +55,30 @@ export class MemberUpdateService {
     await MajorImplementService.cleanUpImplements(guildContext);
   } 
 
-  public static queueUnassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember, updateRoles: boolean): Promise<void> {
-    return this.queue(guildContext, () => this.unassignAllCourses(guildContext, member, updateRoles));
+  public static queueUnassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
+    return this.queue(guildContext, () => this.unassignAllCourses(guildContext, member));
   }
 
-  private static async unassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember, updateRoles: boolean): Promise<void> {
+  private static async unassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
     guildContext.guildLog(`Unassigning all courses from ${DiscordUtils.describeUserForLogs(member.user)}.`);
 
-    await UserDatabaseService.removeAllCoursesFromMember(guildContext, member);
-
-    if(updateRoles)
-      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+    await UserDatabaseService.removeAllCoursesFromUser(guildContext, member.user.id);
+    
+    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
 
     await MajorImplementService.cleanUpImplements(guildContext);
   } 
+
+  public static queueLeaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
+    return this.queue(guildContext, () => this.leaveGuild(guildContext, discordUserId));
+  }
+
+  private static async leaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
+    guildContext.guildLog(`Performing guild-leave cleanup of user ID ${discordUserId}.`);
+
+    await UserDatabaseService.leaveGuild(guildContext, discordUserId);
+    await MajorImplementService.cleanUpImplements(guildContext);
+  }
 
   public static queueToggleTAStatus(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
     return this.queue(guildContext, () => this.toggleTAStatus(guildContext, member, courses));
@@ -96,5 +106,13 @@ export class MemberUpdateService {
     const banned = await BanService.banIfBannedStudentId(member.user.id);
     if(!banned)    
       await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  }
+
+  public static queueSynchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
+    return this.queue(guildContext, () => this.synchronizeRoles(guildContext, member));
+  }
+
+  private static async synchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
+    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
   }
 }

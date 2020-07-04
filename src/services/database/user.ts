@@ -40,6 +40,10 @@ export class UserDatabaseService {
     return await User.findOne({ discordUserId: discordUserId }).exec();
   }
 
+  public static async getAllUsers(): Promise<IUser[]> {
+    return await User.find();
+  }
+
   public static async addCoursesToMember(guildContext: GuildContext, discordMember: Discord.GuildMember, courses: Course[]): Promise<void> {
     const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
 
@@ -70,8 +74,8 @@ export class UserDatabaseService {
     await user.save();
   }
 
-  public static async removeAllCoursesFromMember(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id, guildContext);
+  public static async removeAllCoursesFromUser(guildContext: GuildContext, discordUserId: string): Promise<void> {
+    const user = await this.findOrCreateUser(discordUserId, guildContext);
 
     const guildData = user.guilds.get(guildContext.guild.id);
     guildData.courses = [];
@@ -85,8 +89,8 @@ export class UserDatabaseService {
     await user.save();
   }
 
-  public static async leaveGuild(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
-    const user = await this.findOrCreateUser(discordMember.user.id);
+  public static async leaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
+    const user = await this.findOrCreateUser(discordUserId);
 
     user.guilds.delete(guildContext.guild.id);
     await user.save();

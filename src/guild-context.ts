@@ -7,6 +7,7 @@ import { Course } from "models/course";
 import { VerificationStatus } from "models/verification-status";
 import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
+import { HealthAssuranceService } from "services/health-assurance";
 import { VerificationImplementService } from "services/implement/verification/implement";
 import { MemberUpdateService } from "services/member-update";
 import { DiscordUtils } from "utils/discord";
@@ -41,7 +42,10 @@ export class GuildContext {
     public guild: Discord.Guild,
     public guildConfig: GuildConfig,
     public majors: MajorMap) {
-    this.init();
+    this.init()
+      .catch(err => {
+        this.guildError("Failed to initialize guild:", err);
+      });
   }
 
   private async init(): Promise<void> {
@@ -50,18 +54,25 @@ export class GuildContext {
     this.verifiedRoleId = verificationImplement.roleId;
 
     this.guildLog("Initializing course lists...");
-    CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
-      .then(courses => this.courses = courses)
+    this.courses = await CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
       .catch(err => {
-        this.guildError("Failed to get course lists from the web catalog.");
-        console.error(err);
+        this.guildError("Failed to get course lists from the web catalog:", err);
+
+        let courses: { [majorPrefix: string]: Course[] } = {};
 
         _.forIn(this.majors, major => {
-          this.courses[major.prefix] = [];
+          courses[major.prefix] = [];
         });
+
+        return courses;
       });
+    
+    this.guildLog("Performing startup checks...");
+    await HealthAssuranceService.identifyAndFixHealthIssues(this);
 
     this.initControllers();
+
+    this.guildLog("Initialization complete.");
   }
 
   private initControllers(): void {
@@ -110,16 +121,7 @@ export class GuildContext {
   }
 
   public onMemberLeave(member: Discord.GuildMember): void {
-    MemberUpdateService.queueUnassignAllCourses(this, member, false)
-      .then(() => {
-        UserDatabaseService.leaveGuild(this, member)
-          .catch(err => {
-            this.guildError(`Failed to clear guild from member ${DiscordUtils.describeUserForLogs(member.user)} on guild leave.`, err);
-          });
-      })
-      .catch(err => {
-        this.guildError(`Failed to unassign courses from member ${DiscordUtils.describeUserForLogs(member.user)} on guild leave.`, err);
-      });
+    MemberUpdateService.queueLeaveGuild(this, member.user.id);
   }
 
   public guildLog(message: string, ...optionalParams: any): void {

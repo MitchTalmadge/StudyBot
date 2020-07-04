@@ -16,7 +16,7 @@ export class CourseService {
     _.forIn(guildContext.majors, major => {
       coursePromises.push(webCatalogService.getCourses(major));
     });
-    Promise.all(coursePromises)
+    await Promise.all(coursePromises)
       .then(allCourses => {
         allCourses.forEach((courseList, index) => {
           const majorPrefix: string = Object.keys(guildContext.majors)[index];
