@@ -109,7 +109,11 @@ export class StudyBot {
       return;
     }
 
-    this.guildContexts[message.guild.id].onMessageReceived(<Discord.Message>message);
+    try {
+      this.guildContexts[message.guild.id].onMessageReceived(<Discord.Message>message);
+    } catch(err) {
+      console.error(`Failed to send message ID ${message.id} to guild ID ${message.guild.id} for processing:`, err);
+    }
   }
 
   private static onMemberJoin(member: Discord.GuildMember | Discord.PartialGuildMember): void {
@@ -120,7 +124,11 @@ export class StudyBot {
     
     const guildContext = this.guildContexts[member.guild.id];
     guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} joined the guild.`);
-    this.guildContexts[member.guild.id].onMemberJoin(<Discord.GuildMember>member);
+    try {
+      this.guildContexts[member.guild.id].onMemberJoin(<Discord.GuildMember>member);
+    } catch(err) {
+      console.error(`Failed to send member ID ${member.id} join event to guild ID ${member.guild.id} for processing:`, err);
+    }
   }  
 
   private static onMemberLeave(member: Discord.GuildMember | Discord.PartialGuildMember): void {
@@ -131,7 +139,11 @@ export class StudyBot {
     
     const guildContext = this.guildContexts[member.guild.id];
     guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} left the guild.`);
-    this.guildContexts[member.guild.id].onMemberLeave(<Discord.GuildMember>member);
+    try {
+      this.guildContexts[member.guild.id].onMemberLeave(<Discord.GuildMember>member);
+    } catch(err) {
+      console.error(`Failed to send member ID ${member.id} leave event to guild ID ${member.guild.id} for processing:`, err);
+    }
   }  
 }
 

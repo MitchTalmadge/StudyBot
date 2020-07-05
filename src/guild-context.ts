@@ -38,6 +38,8 @@ export class GuildContext {
 
   public verifiedRoleId: string;
 
+  private initComplete = false;
+
   constructor(
     public guild: Discord.Guild,
     public guildConfig: GuildConfig,
@@ -70,9 +72,11 @@ export class GuildContext {
     this.guildLog("Performing startup checks...");
     await HealthAssuranceService.identifyAndFixHealthIssues(this);
 
+    this.guildLog("Initializing controllers...");
     this.initControllers();
 
     this.guildLog("Initialization complete.");
+    this.initComplete = true;
   }
 
   private initControllers(): void {
@@ -84,6 +88,11 @@ export class GuildContext {
   }
 
   public onMessageReceived(message: Discord.Message): void {
+    if(!this.initComplete) {
+      this.guildLog(`Message ID ${message.id} from ${DiscordUtils.describeUserForLogs(message.author)} dropped because init is not complete.`);
+      return;
+    }
+
     // Channel Controllers
     if (message.channel instanceof Discord.TextChannel) {
       if (message.channel.id === this.guildConfig.courseSelectionChannelId) {
