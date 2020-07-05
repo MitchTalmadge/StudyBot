@@ -4,7 +4,7 @@ import { EmailService } from "services/email";
 import { CommandController } from "./command-controller";
 
 export class DevCommandController extends CommandController {
-  public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+  public onMessageReceived(message: Discord.Message): void {
     if (process.env.NODE_ENV !== "development")
       return;
 

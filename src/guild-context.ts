@@ -83,7 +83,7 @@ export class GuildContext {
     this.commandControllers.push(new ModeratorCommandController(this));
   }
 
-  public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+  public onMessageReceived(message: Discord.Message): void {
     // Channel Controllers
     if (message.channel instanceof Discord.TextChannel) {
       if (message.channel.id === this.guildConfig.courseSelectionChannelId) {

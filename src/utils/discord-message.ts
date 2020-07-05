@@ -7,7 +7,7 @@ export class DiscordMessageUtils {
    * @param message The message to delete.
    * @param delayMs How long to wait before deleting the message.
    */
-  public static purgeMessage(message: Discord.Message | Discord.PartialMessage, delayMs: number = 0): void {
+  public static purgeMessage(message: Discord.Message, delayMs: number = 0): void {
     message.delete({
       timeout: delayMs,
       reason: "StudyBot automatic message purge."

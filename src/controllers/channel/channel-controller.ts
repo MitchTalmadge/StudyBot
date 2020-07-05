@@ -5,5 +5,5 @@ export abstract class ChannelController {
   constructor(protected guildContext: GuildContext) {
   }
 
-  public abstract async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void>;
+  public abstract async onMessageReceived(message: Discord.Message): Promise<void>;
 }

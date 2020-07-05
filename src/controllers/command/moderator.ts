@@ -10,7 +10,7 @@ import { VerifierServiceFactory } from "services/verification/verifier-factory";
 import { CommandController } from "./command-controller";
 
 export class ModeratorCommandController extends CommandController {
-  public onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
+  public onMessageReceived(message: Discord.Message): void {
     if(message.channel.id !== this.guildContext.guildConfig.moderatorCommandChannelId)
       return;
 

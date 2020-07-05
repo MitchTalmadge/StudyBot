@@ -29,7 +29,7 @@ export class VerificationChannelController extends ChannelController {
     }
   }
 
-  public async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void> {
+  public async onMessageReceived(message: Discord.Message): Promise<void> {
     if(!this.enabled) {
       return;
     }

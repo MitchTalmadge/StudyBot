@@ -4,7 +4,6 @@ import { GuildContext } from "guild-context";
 import { CourseImplementChannelType, ICourseImplement } from "models/implement/course";
 import { IMajorImplement } from "models/implement/major";
 import { Major } from "models/major";
-import { CourseService } from "services/course";
 import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { DiscordUtils } from "utils/discord";
 

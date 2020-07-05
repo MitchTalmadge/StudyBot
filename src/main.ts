@@ -98,28 +98,38 @@ export class StudyBot {
   private static onMessageReceived(message: Discord.Message | Discord.PartialMessage): void {
     if (message.author.id === this.client.user.id)
       return;
-
-    this.guildContexts[message.guild.id].onMessageReceived(message);
-  }
-
-  private static onMemberJoin(member: Discord.GuildMember | Discord.PartialGuildMember): void {
-    const guildContext = this.guildContexts[member.guild.id];
-    if(member.partial) {
-      guildContext.guildDebug(`Skipping partial member join for ${DiscordUtils.describeUserForLogs(member.user)}`);
+    if(message.partial) {
+      console.log(`Dropping partial message with ID ${message.id}.`);
       return;
     }
 
+    // Handle private messages
+    if(message.channel.type === "dm") {
+      message.reply("Hey there! Messages here don't get read. Please use the guild channels to join courses or do other things :) If you need help, PM a moderator! Have a good day!");
+      return;
+    }
+
+    this.guildContexts[message.guild.id].onMessageReceived(<Discord.Message>message);
+  }
+
+  private static onMemberJoin(member: Discord.GuildMember | Discord.PartialGuildMember): void {
+    if(member.partial) {
+      console.log(`Dropping partial member join for member ID ${member.id}.`);
+      return;
+    }
+    
+    const guildContext = this.guildContexts[member.guild.id];
     guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} joined the guild.`);
     this.guildContexts[member.guild.id].onMemberJoin(<Discord.GuildMember>member);
   }  
 
   private static onMemberLeave(member: Discord.GuildMember | Discord.PartialGuildMember): void {
-    const guildContext = this.guildContexts[member.guild.id];
     if(member.partial) {
-      guildContext.guildDebug(`Skipping partial member leave for ${DiscordUtils.describeUserForLogs(member.user)}`);
+      console.log(`Dropping partial member leave for member ID ${member.id}`);
       return;
     }
-
+    
+    const guildContext = this.guildContexts[member.guild.id];
     guildContext.guildLog(`Member ${DiscordUtils.describeUserForLogs(member.user)} left the guild.`);
     this.guildContexts[member.guild.id].onMemberLeave(<Discord.GuildMember>member);
   }  

@@ -6,5 +6,5 @@ export abstract class CommandController {
 
   }
 
-  public abstract onMessageReceived(message: Discord.Message | Discord.PartialMessage): void;
+  public abstract onMessageReceived(message: Discord.Message): void;
 }

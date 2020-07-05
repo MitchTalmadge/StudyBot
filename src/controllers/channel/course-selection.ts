@@ -11,7 +11,7 @@ import { ChannelController } from "./channel-controller";
 
 export class CourseSelectionChannelController extends ChannelController {
   // TODO: async-ify
-  public async onMessageReceived(message: Discord.Message | Discord.PartialMessage): Promise<void> {
+  public async onMessageReceived(message: Discord.Message): Promise<void> {
     if (message.content.toLowerCase().startsWith("join")) {
       this.joinOrLeaveCourses(message, "join")  
         .then(result => {
@@ -65,7 +65,7 @@ export class CourseSelectionChannelController extends ChannelController {
   }
 
   // TODO: async-ify
-  private joinOrLeaveCourses(message: Discord.Message | Discord.PartialMessage, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
+  private joinOrLeaveCourses(message: Discord.Message, action: "join" | "leave"): Promise<{validCourses: Course[], invalidCourseNames: string[]}> {
     const separatorIndex = message.content.indexOf(" ");
     if(separatorIndex === -1) {
       return Promise.reject(`${message.author}, I didn't see any course numbers in your request!`);
