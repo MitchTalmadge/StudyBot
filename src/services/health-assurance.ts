@@ -23,6 +23,7 @@ export class HealthAssuranceService {
     this.guildContext.guildLog("Guaranteeing course implements...");
     const guildStorage = await GuildStorageDatabaseService.findOrCreateGuildStorage(this.guildContext);
     for(let majorImplement of guildStorage.majorImplements) {
+      await MajorImplementService.guarantee(this.guildContext, this.guildContext.majors[majorImplement[0]]);
       let courseImplements = majorImplement[1].courseImplements;
       for (let courseImplement of courseImplements) {
         let course = CourseService.findCourseByKey(this.guildContext, courseImplement[0]);
