@@ -49,6 +49,11 @@ export class CourseChannelImplementService {
             id: taRoleId,
             allow: ["VIEW_CHANNEL", "MANAGE_MESSAGES"]
           },
+          {
+            type: "role",
+            id: guildContext.guildConfig.moderatorRoleId,
+            allow: ["VIEW_CHANNEL"]
+          }
         ],
         reason: "StudyBot automatic course channel creation.",
       }
@@ -79,6 +84,11 @@ export class CourseChannelImplementService {
             type: "role",
             id: taRoleId,
             allow: ["VIEW_CHANNEL", "MUTE_MEMBERS", "DEAFEN_MEMBERS", "PRIORITY_SPEAKER"]
+          },
+          {
+            type: "role",
+            id: guildContext.guildConfig.moderatorRoleId,
+            allow: ["VIEW_CHANNEL"]
           }
         ],
         reason: "StudyBot automatic course channel creation.",
