@@ -15,8 +15,7 @@ jobs:
       - name: Build and Push to GH Packages
         uses: docker/build-push-action@v1
         with:
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: ghcr.io
-          repository: mitchtalmadge/studybot
+          repository: ghcr.io/mitchtalmadge/studybot
           tag_with_ref: true
