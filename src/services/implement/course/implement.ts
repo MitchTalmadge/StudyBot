@@ -28,7 +28,6 @@ export class CourseImplementService {
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
     const majorCategoryIds = await MajorImplementService.getCategoryIdsForNewCourseImplement(guildContext, course.major);
-    const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
     
     // Main Role
     const mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
@@ -39,7 +38,7 @@ export class CourseImplementService {
     // Channels
     const channelIds: string[] = [];
     for(let type of CourseImplementChannelType.values()) {
-      channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryIds[type], mainRoleId, taRoleId, verificationImplement.roleId)).id;
+      channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryIds[type], mainRoleId, taRoleId)).id;
     }
 
     const implement = {
