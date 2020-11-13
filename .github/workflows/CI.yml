@@ -1,13 +1,22 @@
 name: CI
 
-on: [push]
+on:
+  release:
+    types: [published]
+  push:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1.1.0
-      - name: Install Dependencies
-        run: npm install
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Build and Push to GH Packages
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: MitchTalmadge/StudyBot/studybot
+          tag_with_ref: true
