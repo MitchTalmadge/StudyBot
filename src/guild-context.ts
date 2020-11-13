@@ -51,10 +51,6 @@ export class GuildContext {
   }
 
   private async init(): Promise<void> {
-    this.guildLog("Initializing verified role...");
-    const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(this);
-    this.verifiedRoleId = verificationImplement.roleId;
-
     this.guildLog("Initializing course lists...");
     this.courses = await CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
       .catch(err => {
@@ -69,14 +65,21 @@ export class GuildContext {
         return courses;
       });
     
-    this.guildLog("Performing startup checks...");
-    await HealthAssuranceService.identifyAndFixHealthIssues(this);
+    this.guildLog("Performing startup health checks...");
+    await this.initHealth();
 
     this.guildLog("Initializing controllers...");
     this.initControllers();
 
     this.guildLog("Initialization complete.");
     this.initComplete = true;
+  }
+
+  private async initHealth(): Promise<void> {
+    let has = new HealthAssuranceService(this);
+    this.verifiedRoleId = await has.guaranteeVerificationRole();
+    await has.guaranteeCourseImplements();
+    await has.identifyAndFixHealthIssues();
   }
 
   private initControllers(): void {

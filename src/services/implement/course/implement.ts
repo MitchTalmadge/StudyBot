@@ -5,7 +5,6 @@ import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { UserDatabaseService } from "services/database/user";
 
 import { MajorImplementService } from "../major/implement";
-import { VerificationImplementService } from "../verification/implement";
 import { CourseChannelImplementService } from "./channel";
 import { CourseRoleImplementService } from "./role";
 
@@ -41,7 +40,7 @@ export class CourseImplementService {
       channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryIds[type], mainRoleId, taRoleId)).id;
     }
 
-    const implement = {
+    const implement: ICourseImplement = {
       mainRoleId,
       taRoleId,
       channelIds,
@@ -71,5 +70,35 @@ export class CourseImplementService {
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
   }
 
-  // TODO: Repair implement
+  public static async guarantee(guildContext: GuildContext, course: Course) {
+    guildContext.guildLog(`Guaranteeing course ${course.key}...`);
+    const implement = await this.getCourseImplementIfExists(guildContext, course);
+    if(!implement) {
+      return;
+    }
+
+    let update = false;
+    
+    // Main Role
+    if(!await guildContext.guild.roles.fetch(implement.mainRoleId)) {
+      implement.mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
+      guildContext.guildLog(`Created missing main role for course ${course.key}`);
+      update = true;
+    }
+
+    // TA Role
+    if(!await guildContext.guild.roles.fetch(implement.taRoleId)) {
+      implement.taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
+      guildContext.guildLog(`Created missing TA role for course ${course.key}`);
+      update = true;
+    }
+
+    // TODO: channels
+
+    // TODO: channel permissions
+
+    if(update) {
+      await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
+    }
+  }
 }

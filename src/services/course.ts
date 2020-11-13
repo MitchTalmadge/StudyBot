@@ -30,6 +30,17 @@ export class CourseService {
   }
 
   /**
+   * Attempts to find a Course instance matching the given key.
+   * @param guildContext The guild context.
+   * @param key The key of the course to find.
+   * @returns The course if it could be found in the cache, otherwise null.
+   */
+  public static findCourseByKey(guildContext: GuildContext, key: string): Course | null {
+    const allCourses = _.flatMap(guildContext.courses);
+    return allCourses.find(c => c.key == key);
+  }
+
+  /**
    * Given a number and major, finds a matching course object from that major's course list.
    * If the course list is empty, all numbers are considered valid.
    * @param guildContext The guild context.

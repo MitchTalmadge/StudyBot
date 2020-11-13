@@ -23,4 +23,21 @@ export class VerificationImplementService {
     await GuildStorageDatabaseService.setVerificationImplement(guildContext, implement);
     return implement;
   }
+
+  public static async guarantee(guildContext: GuildContext) {
+    guildContext.guildLog("Guaranteeing verification implement...");
+    const implement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
+    let update = false;
+
+    // Role
+    if(!await guildContext.guild.roles.fetch(implement.roleId)) {
+      implement.roleId = (await VerificationRoleImplementService.createRole(guildContext)).id;
+      guildContext.guildLog("Created missing verification role.");
+      update = true;
+    }
+
+    if(update) {
+      await GuildStorageDatabaseService.setVerificationImplement(guildContext, implement);
+    }
+  }
 }
