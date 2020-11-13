@@ -17,6 +17,6 @@ jobs:
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: mitchtalmadge/studybot/studybot
+          registry: ghcr.io
+          repository: mitchtalmadge/studybot
           tag_with_ref: true
