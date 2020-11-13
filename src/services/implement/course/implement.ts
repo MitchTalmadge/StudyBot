@@ -98,7 +98,7 @@ export class CourseImplementService {
       if(!guildContext.guild.channels.resolve(implement.channelIds[type])) {
         const majorCategoryId = await MajorImplementService.getCategoryIdForNewCourseImplement(guildContext, course.major, type);
         implement.channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryId, implement.mainRoleId, implement.taRoleId)).id;
-        guildContext.guildLog(`Created missing ${type} channel for course ${course.key}`);
+        guildContext.guildLog(`Created missing ${CourseImplementChannelType[type]} channel for course ${course.key}`);
         update = true;
       }
     }
