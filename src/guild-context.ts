@@ -8,7 +8,6 @@ import { VerificationStatus } from "models/verification-status";
 import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { HealthAssuranceService } from "services/health-assurance";
-import { VerificationImplementService } from "services/implement/verification/implement";
 import { MemberUpdateService } from "services/member-update";
 import { DiscordUtils } from "utils/discord";
 
