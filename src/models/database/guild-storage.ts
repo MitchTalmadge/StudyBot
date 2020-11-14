@@ -12,7 +12,7 @@ export interface IGuildStorage extends Document {
 }
 
 export const GuildStorageSchema = new Schema({
-  guildId: { type: Schema.Types.String, required: true, unique: true },
+  guildId: { type: Schema.Types.String, required: true },
 
   majorImplements: {
     type: Map,
@@ -25,8 +25,8 @@ export const GuildStorageSchema = new Schema({
       courseImplements: {
         type: Map,
         of: new Schema({
-          mainRoleId: { type: Schema.Types.String, required: true, unique: true },
-          taRoleId: { type: Schema.Types.String, required: true, unique: true },
+          mainRoleId: { type: Schema.Types.String, required: true },
+          taRoleId: { type: Schema.Types.String, required: true },
           channelIds: { type: [Schema.Types.String], required: true },
         }),
         required: true,
@@ -38,7 +38,7 @@ export const GuildStorageSchema = new Schema({
   },
 
   verificationImplement: new Schema({
-    roleId: { type: Schema.Types.String, required: true, unique: true },
+    roleId: { type: Schema.Types.String, required: true },
   })
 });
 

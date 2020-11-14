@@ -28,93 +28,82 @@ export class MemberUpdateService {
   }
 
   public static queueAssignCourses(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    return this.queue(guildContext, () => this.assignCourses(guildContext, member, courses));
-  }
-
-  private static async assignCourses(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    guildContext.guildLog(`Assigning courses to ${DiscordUtils.describeUserForLogs(member.user)}:`, courses);
-    
-    await UserDatabaseService.addCoursesToMember(guildContext, member, courses);
-
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-
-    await MajorImplementService.cleanUpImplements(guildContext);
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Assigning courses to ${DiscordUtils.describeUserForLogs(member.user)}:`, courses);
+      
+      await UserDatabaseService.addCoursesToMember(guildContext, member, courses);
+  
+      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  
+      await MajorImplementService.cleanUpImplements(guildContext);
+    });
   }
 
   public static queueUnassignCourses(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    return this.queue(guildContext, () => this.unassignCourses(guildContext, member, courses));
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Unassigning courses from ${DiscordUtils.describeUserForLogs(member.user)}:`, courses);
+  
+      await UserDatabaseService.removeCoursesFromMember(guildContext, member, courses);
+  
+      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  
+      await MajorImplementService.cleanUpImplements(guildContext);
+    } );
   }
-
-  private static async unassignCourses(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    guildContext.guildLog(`Unassigning courses from ${DiscordUtils.describeUserForLogs(member.user)}:`, courses);
-
-    await UserDatabaseService.removeCoursesFromMember(guildContext, member, courses);
-
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-
-    await MajorImplementService.cleanUpImplements(guildContext);
-  } 
 
   public static queueUnassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    return this.queue(guildContext, () => this.unassignAllCourses(guildContext, member));
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Unassigning all courses from ${DiscordUtils.describeUserForLogs(member.user)}.`);
+  
+      await UserDatabaseService.removeAllCoursesFromUser(guildContext, member.user.id);
+      
+      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  
+      await MajorImplementService.cleanUpImplements(guildContext);
+    } );
   }
-
-  private static async unassignAllCourses(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    guildContext.guildLog(`Unassigning all courses from ${DiscordUtils.describeUserForLogs(member.user)}.`);
-
-    await UserDatabaseService.removeAllCoursesFromUser(guildContext, member.user.id);
-    
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-
-    await MajorImplementService.cleanUpImplements(guildContext);
-  } 
 
   public static queueLeaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
-    return this.queue(guildContext, () => this.leaveGuild(guildContext, discordUserId));
-  }
-
-  private static async leaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
-    guildContext.guildLog(`Performing guild-leave cleanup of user ID ${discordUserId}.`);
-
-    await UserDatabaseService.leaveGuild(guildContext, discordUserId);
-    await MajorImplementService.cleanUpImplements(guildContext);
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Performing guild-leave cleanup of user ID ${discordUserId}.`);
+  
+      await UserDatabaseService.leaveGuild(guildContext, discordUserId);
+      await MajorImplementService.cleanUpImplements(guildContext);
+    });
   }
 
   public static queueToggleTAStatus(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    return this.queue(guildContext, () => this.toggleTAStatus(guildContext, member, courses));
-  }
-
-  private static async toggleTAStatus(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
-    guildContext.guildLog(`Toggling TA status for ${DiscordUtils.describeUserForLogs(member.user)} in courses:`, courses);
-
-    await UserDatabaseService.toggleTAStatusForMember(guildContext, member, courses);
-
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-
-    await MajorImplementService.cleanUpImplements(guildContext);
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Toggling TA status for ${DiscordUtils.describeUserForLogs(member.user)} in courses:`, courses);
+  
+      await UserDatabaseService.toggleTAStatusForMember(guildContext, member, courses);
+  
+      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  
+      await MajorImplementService.cleanUpImplements(guildContext);
+    });
   }
 
   public static queueMarkVerified(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    return this.queue(guildContext, () => this.markVerified(guildContext, member));
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Marking ${DiscordUtils.describeUserForLogs(member.user)} verified.`);
+  
+      await UserDatabaseService.setUserVerified(member.user.id);
+  
+      const banned = await BanService.banIfBannedStudentId(member.user.id);
+      if(!banned)    
+        await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+    });
   }
 
-  private static async markVerified(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    guildContext.guildLog(`Marking ${DiscordUtils.describeUserForLogs(member.user)} verified.`);
-
-    await UserDatabaseService.setUserVerified(member.user.id);
-
-    const banned = await BanService.banIfBannedStudentId(member.user.id);
-    if(!banned)    
-      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-  }
-
-  public static queueSynchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    return this.queue(guildContext, () => this.synchronizeRoles(guildContext, member));
-  }
-
-  private static async synchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
-    guildContext.guildLog(`Synchronizing roles for ${DiscordUtils.describeUserForLogs(member.user)}.`);
-
-    await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
+  public static queueSynchronizeRolesManyMembers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Synchronizing roles for ${members.length} members...`);
+      let promises: Promise<void>[] = [];
+      for(let member of members) {
+        promises.push(DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member));
+      }
+      await Promise.all(promises);
+    });
   }
 }

@@ -15,11 +15,13 @@ export class GuildStorageDatabaseService {
     }
 
     // Create a new storage.
+    guildContext.guildLog("Creating Guild Storage");
     let majorImplements = new Map<string, {}>();
     storage = await new GuildStorage(<IGuildStorage>{
       guildId: guildContext.guild.id,
       majorImplements,
     }).save();
+    guildContext.guildLog("Storage created: " + storage.id);
     return storage;
   }
 

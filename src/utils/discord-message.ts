@@ -23,7 +23,7 @@ export class DiscordMessageUtils {
    * @param options Optional extra message data, like attachments.
    * @returns A promise that will resolve after the message has been sent.
    */
-  public static async sendMessage(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: Discord.MessageOptions | Discord.MessageAdditions): Promise<Discord.Message> {
+  public static async sendMessage(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: (Discord.MessageOptions & {split?: false}) | Discord.MessageAdditions): Promise<Discord.Message> {
     return await channel.send(content, options);
   }
 
@@ -35,7 +35,7 @@ export class DiscordMessageUtils {
    * @param options Optional extra message data, like attachments.
    * @returns A promise that will resolve after the message has been sent. (Will not wait for message to be deleted.)
    */
-  public static async sendTempMessage(lifeMs: number, channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: Discord.MessageOptions | Discord.MessageAdditions): Promise<Discord.Message> {
+  public static async sendTempMessage(lifeMs: number, channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: (Discord.MessageOptions & {split?: false}) | Discord.MessageAdditions): Promise<Discord.Message> {
     const message = await this.sendMessage(channel, content, options);
     timer(lifeMs).subscribe(() => {
       message.delete({

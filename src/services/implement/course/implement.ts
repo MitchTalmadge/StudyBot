@@ -5,7 +5,6 @@ import { GuildStorageDatabaseService } from "services/database/guild-storage";
 import { UserDatabaseService } from "services/database/user";
 
 import { MajorImplementService } from "../major/implement";
-import { VerificationImplementService } from "../verification/implement";
 import { CourseChannelImplementService } from "./channel";
 import { CourseRoleImplementService } from "./role";
 
@@ -28,7 +27,6 @@ export class CourseImplementService {
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
     const majorCategoryIds = await MajorImplementService.getCategoryIdsForNewCourseImplement(guildContext, course.major);
-    const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
     
     // Main Role
     const mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
@@ -39,10 +37,10 @@ export class CourseImplementService {
     // Channels
     const channelIds: string[] = [];
     for(let type of CourseImplementChannelType.values()) {
-      channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryIds[type], mainRoleId, taRoleId, verificationImplement.roleId)).id;
+      channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryIds[type], mainRoleId, taRoleId)).id;
     }
 
-    const implement = {
+    const implement: ICourseImplement = {
       mainRoleId,
       taRoleId,
       channelIds,
@@ -72,5 +70,45 @@ export class CourseImplementService {
     await GuildStorageDatabaseService.setCourseImplement(guildContext, course, undefined);
   }
 
-  // TODO: Repair implement
+  public static async guarantee(guildContext: GuildContext, course: Course) {
+    guildContext.guildLog(`Guaranteeing course ${course.key}...`);
+    const implement = await this.getCourseImplementIfExists(guildContext, course);
+    if(!implement) {
+      return;
+    }
+
+    let update = false;
+    
+    // Main Role
+    if(!await guildContext.guild.roles.fetch(implement.mainRoleId)) {
+      implement.mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
+      guildContext.guildLog(`Created missing main role for course ${course.key}`);
+      update = true;
+    }
+
+    // TA Role
+    if(!await guildContext.guild.roles.fetch(implement.taRoleId)) {
+      implement.taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
+      guildContext.guildLog(`Created missing TA role for course ${course.key}`);
+      update = true;
+    }
+
+    // Channels
+    for(let type of CourseImplementChannelType.values()) {
+      const channel = guildContext.guild.channels.resolve(implement.channelIds[type]);
+      if(!channel) {
+        const majorCategoryId = await MajorImplementService.getCategoryIdForNewCourseImplement(guildContext, course.major, type);
+        implement.channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryId, implement.mainRoleId, implement.taRoleId)).id;
+        guildContext.guildLog(`Created missing ${CourseImplementChannelType[type]} channel for course ${course.key}`);
+        update = true;
+      } else {
+        await CourseChannelImplementService.resetChannelPermissionsByType(guildContext, type, implement.mainRoleId, implement.taRoleId, channel);
+        guildContext.guildLog(`Reset ${CourseImplementChannelType[type]} channel permissions for course ${course.key}`);
+      }
+    }
+
+    if(update) {
+      await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
+    }
+  }
 }

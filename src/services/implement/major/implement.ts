@@ -44,20 +44,29 @@ export class MajorImplementService {
    * @returns An array of category IDs in enum order.
    */
   public static async getCategoryIdsForNewCourseImplement(guildContext: GuildContext, major: Major): Promise<string[]> {
+    const channelIds: string[] = [];
+    guildContext.guildDebug("Major categories requested for new course implement.");
+    for (let type of CourseImplementChannelType.values()) {
+      channelIds[type] = await this.getCategoryIdForNewCourseImplement(guildContext, major, type);
+    }
+    return channelIds;
+  }
+
+  /**
+   * Determines the ID of the Major category where a new Course implement's channel (by type) 
+   * should be placed in order to not cause Discord errors due to too many channels 
+   * being in one category.
+   * @returns The category ID.
+   */
+  public static async getCategoryIdForNewCourseImplement(guildContext: GuildContext, major: Major, type: CourseImplementChannelType): Promise<string> {
     let implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       implement = await this.createEmptyMajorImplement(guildContext, major);
     }
-
-    const channelIds: string[] = [];
-
-    guildContext.guildDebug("Major category requested for new course implement.");
-    for (let type of CourseImplementChannelType.values()) {
-      const categoryIndex = this.findCategoryIndexForNewCourseChannel(guildContext, implement.categoryIdsMatrix[type].categoryIds);
-      implement = await this.scaleOutCategories(guildContext, major, type, categoryIndex + 1);
-      channelIds[type] = implement.categoryIdsMatrix[type].categoryIds[categoryIndex];
-    }
-    return channelIds;
+    
+    const categoryIndex = this.findCategoryIndexForNewCourseChannel(guildContext, implement.categoryIdsMatrix[type].categoryIds);
+    implement = await this.scaleOutCategories(guildContext, major, type, categoryIndex + 1);
+    return implement.categoryIdsMatrix[type].categoryIds[categoryIndex];
   }
 
   /**
@@ -340,5 +349,27 @@ export class MajorImplementService {
           position: i
         };
       });
+  }
+
+  public static async guarantee(guildContext: GuildContext, major: Major) {
+    guildContext.guildLog(`Guaranteeing ${major.prefix} major implement...`);
+    const implement = await this.getMajorImplementIfExists(guildContext, major);
+    if (!implement) {
+      return;
+    }
+
+    let update = false;
+    for(let categoryIdType of implement.categoryIdsMatrix) {
+      categoryIdType.categoryIds = categoryIdType.categoryIds.filter(id => {
+        if(!guildContext.guild.channels.resolve(id)) {
+          guildContext.guildLog(`Removed missing category ID ${id} from ${major.prefix} major implement`);
+          update = true;
+        }
+      });
+    }
+
+    if(update) {
+      await GuildStorageDatabaseService.setMajorImplement(guildContext, major, implement);
+    }
   }
 }
