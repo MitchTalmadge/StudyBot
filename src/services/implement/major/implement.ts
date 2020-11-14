@@ -352,7 +352,7 @@ export class MajorImplementService {
   }
 
   public static async guarantee(guildContext: GuildContext, major: Major) {
-    guildContext.guildLog(`Guaranteeing major ${major.prefix} implement...`);
+    guildContext.guildLog(`Guaranteeing ${major.prefix} major implement...`);
     const implement = await this.getMajorImplementIfExists(guildContext, major);
     if (!implement) {
       return;
@@ -362,7 +362,7 @@ export class MajorImplementService {
     for(let categoryIdType of implement.categoryIdsMatrix) {
       categoryIdType.categoryIds = categoryIdType.categoryIds.filter(id => {
         if(!guildContext.guild.channels.resolve(id)) {
-          guildContext.guildLog(`Removed missing category ID ${id} from major ${major.prefix} implement`);
+          guildContext.guildLog(`Removed missing category ID ${id} from ${major.prefix} major implement`);
           update = true;
         }
       });
