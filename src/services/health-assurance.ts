@@ -51,7 +51,7 @@ export class HealthAssuranceService {
     }
 
     // Synchronize roles.
-    await MemberUpdateService.queueSynchronizeRolesAllUsers(this.guildContext, members.array());
+    await MemberUpdateService.queueSynchronizeRolesManyMembers(this.guildContext, members.array());
 
     const users = await UserDatabaseService.getAllUsers();
     for(let user of users) {

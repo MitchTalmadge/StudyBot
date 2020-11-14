@@ -96,17 +96,9 @@ export class MemberUpdateService {
     });
   }
 
-  public static queueSynchronizeRoles(guildContext: GuildContext, member: Discord.GuildMember): Promise<void> {
+  public static queueSynchronizeRolesManyMembers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
     return this.queue(guildContext, async () => {
-      guildContext.guildLog(`Synchronizing roles for ${DiscordUtils.describeUserForLogs(member.user)}.`);
-  
-      await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
-    });
-  }
-
-  public static queueSynchronizeRolesAllUsers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
-    return this.queue(guildContext, async () => {
-      guildContext.guildLog("Synchronizing roles for all users...");
+      guildContext.guildLog(`Synchronizing roles for ${members.length} members...`);
       let promises: Promise<void>[] = [];
       for(let member of members) {
         promises.push(DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member));
