@@ -38,6 +38,7 @@ export class HealthAssuranceService {
 
     const members = await this.guildContext.guild.members.fetch();
     for(let member of members.values()) {
+      this.guildContext.guildLog(`Checking ${DiscordUtils.describeUserForLogs(member.user)}...`);
       // Don't check the bot itself.
       if(member.user.id === this.guildContext.guild.client.user.id)
         continue;
@@ -47,13 +48,10 @@ export class HealthAssuranceService {
       
       // Make sure banned users did not slip in without our knowledge.
       await BanService.kickIfBanned(member);
-
-      // Synchronize roles.
-      await MemberUpdateService.queueSynchronizeRoles(this.guildContext, member)
-        .catch(err => {
-          this.guildContext.guildError(`Failed to synchronize roles for ${DiscordUtils.describeUserForLogs(member.user)}:`, err);
-        });
     }
+
+    // Synchronize roles.
+    await MemberUpdateService.queueSynchronizeRolesAllUsers(this.guildContext, members.array());
 
     const users = await UserDatabaseService.getAllUsers();
     for(let user of users) {

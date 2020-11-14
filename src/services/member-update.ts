@@ -103,4 +103,15 @@ export class MemberUpdateService {
       await DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member);
     });
   }
+
+  public static queueSynchronizeRolesAllUsers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog("Synchronizing roles for all users...");
+      let promises: Promise<void>[] = [];
+      for(let member of members) {
+        promises.push(DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member));
+      }
+      await Promise.all(promises);
+    });
+  }
 }
