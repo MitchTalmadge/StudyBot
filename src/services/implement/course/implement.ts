@@ -95,15 +95,17 @@ export class CourseImplementService {
 
     // Channels
     for(let type of CourseImplementChannelType.values()) {
-      if(!guildContext.guild.channels.resolve(implement.channelIds[type])) {
+      const channel = guildContext.guild.channels.resolve(implement.channelIds[type]);
+      if(!channel) {
         const majorCategoryId = await MajorImplementService.getCategoryIdForNewCourseImplement(guildContext, course.major, type);
         implement.channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryId, implement.mainRoleId, implement.taRoleId)).id;
         guildContext.guildLog(`Created missing ${CourseImplementChannelType[type]} channel for course ${course.key}`);
         update = true;
+      } else {
+        await CourseChannelImplementService.resetChannelPermissionsByType(guildContext, type, implement.mainRoleId, implement.taRoleId, channel);
+        guildContext.guildLog(`Reset ${CourseImplementChannelType[type]} channel permissions for course ${course.key}`);
       }
     }
-
-    // TODO: channel permissions
 
     if(update) {
       await GuildStorageDatabaseService.setCourseImplement(guildContext, course, implement);
