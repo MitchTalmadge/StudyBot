@@ -51,15 +51,15 @@ export class HealthAssuranceService {
     }
 
     // Synchronize roles.
-    await MemberUpdateService.queueSynchronizeRolesManyMembers(
+    /* await MemberUpdateService.queueSynchronizeRolesManyMembers(
       this.guildContext, 
       members.array().filter(m => m.user.id !== this.guildContext.guild.client.user.id)
-    );
+    ); */
 
-    const users = await UserDatabaseService.getAllUsers();
+    //const users = await UserDatabaseService.getAllUsers();
     
     // Check if any users have left this guild without our knowledge.
-    let missingUserIds: string[] = [];
+    /* let missingUserIds: string[] = [];
     for(let user of users) {
       if(user.guilds.has(this.guildContext.guild.id)) {
         if(!members.some(m => m.user.id === user.discordUserId)) {
@@ -69,7 +69,7 @@ export class HealthAssuranceService {
     }
     if(missingUserIds.length > 0) {
       await MemberUpdateService.queueLeaveGuildManyMembers(this.guildContext, missingUserIds);
-    }
+    } */
 
     // Final sweep to ensure we clean up everything.
     await MajorImplementService.cleanUpImplements(this.guildContext);
