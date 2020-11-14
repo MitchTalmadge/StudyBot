@@ -6,7 +6,6 @@ import { UserDatabaseService } from "services/database/user";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseImplementService } from "../implement/course/implement";
-import { VerificationImplementService } from "../implement/verification/implement";
 export class DiscordRoleAssignmentService {
   public static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
     const user = await UserDatabaseService.findOrCreateUser(discordMember.id, guildContext);
@@ -16,12 +15,11 @@ export class DiscordRoleAssignmentService {
     
     // Verification 
     if(ConfigService.getConfig().verification.enabled) {
-      const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
       if(user.verificationStatus === VerificationStatus.VERIFIED) {
-        if(!discordMember.roles.cache.has(verificationImplement.roleId))
-          rolesToAdd.push(verificationImplement.roleId);
-      } else if(discordMember.roles.cache.has(verificationImplement.roleId)) {
-        rolesToRemove.push(verificationImplement.roleId);
+        if(!discordMember.roles.cache.has(guildContext.verificationRoleId))
+          rolesToAdd.push(guildContext.verificationRoleId);
+      } else if(discordMember.roles.cache.has(guildContext.verificationRoleId)) {
+        rolesToRemove.push(guildContext.verificationRoleId);
       }
     }
 

@@ -35,7 +35,7 @@ export class GuildContext {
    */
   public courses: { [majorPrefix: string]: Course[] };
 
-  public verifiedRoleId: string;
+  public verificationRoleId: string;
 
   private initComplete = false;
 
@@ -76,7 +76,7 @@ export class GuildContext {
 
   private async initHealth(): Promise<void> {
     let has = new HealthAssuranceService(this);
-    this.verifiedRoleId = await has.guaranteeVerificationRole();
+    this.verificationRoleId = await has.guaranteeVerificationRole();
     await has.guaranteeCourseImplements();
     await has.identifyAndFixHealthIssues();
   }
