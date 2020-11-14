@@ -18,9 +18,9 @@ export class DiscordRoleAssignmentService {
     if(ConfigService.getConfig().verification.enabled) {
       const verificationImplement = await VerificationImplementService.getOrCreateVerificationImplement(guildContext);
       if(user.verificationStatus === VerificationStatus.VERIFIED) {
-        if(!discordMember.roles.cache.find(r => r.id == verificationImplement.roleId))
+        if(!discordMember.roles.cache.has(verificationImplement.roleId))
           rolesToAdd.push(verificationImplement.roleId);
-      } else if(discordMember.roles.cache.find(r => r.id == verificationImplement.roleId)) {
+      } else if(discordMember.roles.cache.has(verificationImplement.roleId)) {
         rolesToRemove.push(verificationImplement.roleId);
       }
     }
@@ -32,22 +32,22 @@ export class DiscordRoleAssignmentService {
         const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === course.key);
         if(assignment) { // User is assigned to course.
           const courseImplement = await CourseImplementService.getOrCreateCourseImplement(guildContext, course);
-          if(!discordMember.roles.cache.find(r => r.id == courseImplement.mainRoleId)) 
+          if(!discordMember.roles.cache.has(courseImplement.mainRoleId)) 
             rolesToAdd.push(courseImplement.mainRoleId);
 
           // Check TA status.
           if(assignment.isTA) {
-            if(!discordMember.roles.cache.find(r => r.id == courseImplement.taRoleId))
+            if(!discordMember.roles.cache.has(courseImplement.taRoleId))
               rolesToAdd.push(courseImplement.taRoleId);
-          } else if(discordMember.roles.cache.find(r => r.id == courseImplement.taRoleId)) {
+          } else if(discordMember.roles.cache.has(courseImplement.taRoleId)) {
             rolesToRemove.push(courseImplement.taRoleId);
           }
         } else { // User is not assigned to course.
           const courseImplement = await CourseImplementService.getCourseImplementIfExists(guildContext, course);
           if(courseImplement) {
-            if(discordMember.roles.cache.find(r => r.id == courseImplement.mainRoleId))
+            if(discordMember.roles.cache.has(courseImplement.mainRoleId))
               rolesToRemove.push(courseImplement.mainRoleId);
-            if(discordMember.roles.cache.find(r => r.id == courseImplement.taRoleId))
+            if(discordMember.roles.cache.has(courseImplement.taRoleId))
               rolesToRemove.push(courseImplement.taRoleId);
           }
         }
@@ -55,7 +55,7 @@ export class DiscordRoleAssignmentService {
     }
 
     // Apply assignments.
-    //guildContext.guildDebug(`+${rolesToAdd.length}/-${rolesToRemove.length} roles for ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
+    guildContext.guildDebug(`+${rolesToAdd.length}/-${rolesToRemove.length} roles for ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
     if (rolesToAdd.length > 0)
       discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment.");
     if (rolesToRemove.length > 0)
