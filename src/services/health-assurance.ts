@@ -57,13 +57,18 @@ export class HealthAssuranceService {
     );
 
     const users = await UserDatabaseService.getAllUsers();
+    
+    // Check if any users have left this guild without our knowledge.
+    let missingUserIds: string[] = [];
     for(let user of users) {
-      // Check if the user has left this guild without our knowledge.
       if(user.guilds.has(this.guildContext.guild.id)) {
         if(!members.some(m => m.user.id === user.discordUserId)) {
-          await MemberUpdateService.queueLeaveGuild(this.guildContext, user.discordUserId);
+          missingUserIds.push(user.discordUserId);
         }
       }
+    }
+    if(missingUserIds.length > 0) {
+      await MemberUpdateService.queueLeaveGuildManyMembers(this.guildContext, missingUserIds);
     }
 
     // Final sweep to ensure we clean up everything.

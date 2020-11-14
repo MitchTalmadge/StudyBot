@@ -72,6 +72,18 @@ export class MemberUpdateService {
     });
   }
 
+  public static queueLeaveGuildManyMembers(guildContext: GuildContext, discordUserIds: string[]): Promise<void> {
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Performing guild-leave cleanup of ${discordUserIds.length} members.`);
+      let promises: Promise<void>[] = [];
+      for(let discordUserId of discordUserIds) {
+        promises.push(UserDatabaseService.leaveGuild(guildContext, discordUserId));
+      }
+      await Promise.all(promises);
+      await MajorImplementService.cleanUpImplements(guildContext);
+    });
+  }
+
   public static queueToggleTAStatus(guildContext: GuildContext, member: Discord.GuildMember, courses: Course[]): Promise<void> {
     return this.queue(guildContext, async () => {
       guildContext.guildLog(`Toggling TA status for ${DiscordUtils.describeUserForLogs(member.user)} in courses:`, courses);
