@@ -81,15 +81,15 @@ export class CourseImplementService {
     
     // Main Role
     if(!await guildContext.guild.roles.fetch(implement.mainRoleId)) {
+      guildContext.guildLog(`Creating missing main role for course ${course.key}`);
       implement.mainRoleId = (await CourseRoleImplementService.createMainRole(guildContext, course)).id;
-      guildContext.guildLog(`Created missing main role for course ${course.key}`);
       update = true;
     }
 
     // TA Role
     if(!await guildContext.guild.roles.fetch(implement.taRoleId)) {
+      guildContext.guildLog(`Creating missing TA role for course ${course.key}`);
       implement.taRoleId = (await CourseRoleImplementService.createTARole(guildContext, course)).id;
-      guildContext.guildLog(`Created missing TA role for course ${course.key}`);
       update = true;
     }
 
@@ -97,13 +97,13 @@ export class CourseImplementService {
     for(let type of CourseImplementChannelType.values()) {
       const channel = guildContext.guild.channels.resolve(implement.channelIds[type]);
       if(!channel) {
+        guildContext.guildLog(`Creating missing ${CourseImplementChannelType[type]} channel for course ${course.key}`);
         const majorCategoryId = await MajorImplementService.getCategoryIdForNewCourseImplement(guildContext, course.major, type);
         implement.channelIds[type] = (await CourseChannelImplementService.createChannelByType(guildContext, type, course, majorCategoryId, implement.mainRoleId, implement.taRoleId)).id;
-        guildContext.guildLog(`Created missing ${CourseImplementChannelType[type]} channel for course ${course.key}`);
         update = true;
       } else {
+        guildContext.guildLog(`Resetting ${CourseImplementChannelType[type]} channel permissions for course ${course.key}`);
         await CourseChannelImplementService.resetChannelPermissionsByType(guildContext, type, implement.mainRoleId, implement.taRoleId, channel);
-        guildContext.guildLog(`Reset ${CourseImplementChannelType[type]} channel permissions for course ${course.key}`);
       }
     }
 
