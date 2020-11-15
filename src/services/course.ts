@@ -36,7 +36,7 @@ export class CourseService {
    * @returns The course if it could be found in the cache, otherwise null.
    */
   public static findCourseByKey(guildContext: GuildContext, key: string): Course | null {
-    const allCourses = _.flatMap(guildContext.courses);
+    const allCourses = _.flatMap(guildContext.coursesByMajor);
     return allCourses.find(c => c.key == key);
   }
 
@@ -49,7 +49,7 @@ export class CourseService {
    * @returns The course if valid, undefined if not.
    */
   public static async getCourseFromNumber(guildContext: GuildContext, number: string, major: Major): Promise<Course> {
-    const majorCourses = guildContext.courses[major.prefix];
+    const majorCourses = guildContext.coursesByMajor[major.prefix];
     if (majorCourses.length === 0) {
       return {
         key: CourseUtils.getKey(number, major),

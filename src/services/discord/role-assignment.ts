@@ -25,7 +25,7 @@ export class DiscordRoleAssignmentService {
 
     // Courses
     //TODO: Won't work for non-catalog majors
-    for(let courses of Object.values(guildContext.courses)) {
+    for(let courses of Object.values(guildContext.coursesByMajor)) {
       for(let course of courses) {
         const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === course.key);
         if(assignment) { // User is assigned to course.
