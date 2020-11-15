@@ -201,8 +201,8 @@ export class MajorImplementService {
     }
 
     // Pre-sort roles
-    mainRoles = mainRoles.sort((roleA, roleB) => roleA.name.localeCompare(roleB.name));
-    taRoles = taRoles.sort((roleA, roleB) => roleA.name.localeCompare(roleB.name));
+    mainRoles = mainRoles.sort((roleA, roleB) => roleB.name.localeCompare(roleA.name));
+    taRoles = taRoles.sort((roleA, roleB) => roleB.name.localeCompare(roleA.name));
 
     // Calculate role positions
     const rolePositions: Discord.RolePosition[] = [];

@@ -1,5 +1,5 @@
 import { GuildContext } from "guild-context";
-import { Course, PartialCourse } from "models/course";
+import { PartialCourse } from "models/course";
 import { GuildStorage, IGuildStorage } from "models/database/guild-storage";
 import { ICourseImplement } from "models/implement/course";
 import { IMajorImplement } from "models/implement/major";
@@ -7,22 +7,40 @@ import { IVerificationImplement } from "models/implement/verification";
 import { Major } from "models/major";
 
 export class GuildStorageDatabaseService {
+  private static CACHE: {[guildId: string]: IGuildStorage} = {}
+
   public static async findOrCreateGuildStorage(guildContext: GuildContext): Promise<IGuildStorage> {
+    // Check cache.
+    let storage = this.CACHE[guildContext.guild.id];
+    if(storage) {
+      return storage;
+    }
+
     // Find existing storage.
-    let storage = await GuildStorage.findOne({ guildId: guildContext.guild.id }).exec();
+    storage = await GuildStorage.findOne({ guildId: guildContext.guild.id }).exec();
     if (storage) {
+      this.cache(guildContext, storage);
       return storage;
     }
 
     // Create a new storage.
     guildContext.guildLog("Creating Guild Storage");
     let majorImplements = new Map<string, {}>();
-    storage = await new GuildStorage(<IGuildStorage>{
+    storage = new GuildStorage(<IGuildStorage>{
       guildId: guildContext.guild.id,
       majorImplements,
-    }).save();
+    });
+    await this.saveAndCache(guildContext, storage);
     guildContext.guildLog("Storage created: " + storage.id);
     return storage;
+  }
+
+  private static cache(guildContext: GuildContext, storage: IGuildStorage): void {
+    this.CACHE[guildContext.guild.id] = storage;
+  }
+  
+  private static async saveAndCache(guildContext: GuildContext, storage: IGuildStorage): Promise<void> {
+    this.cache(guildContext, await storage.save());
   }
 
   public static async getMajorImplement(guildContext: GuildContext, major: Major): Promise<IMajorImplement | undefined> {
@@ -38,8 +56,9 @@ export class GuildStorageDatabaseService {
       storage.majorImplements.set(major.prefix, implement);
     else
       storage.majorImplements.delete(major.prefix);
-      
-    await storage.save();
+
+    storage.markModified("majorImplements");
+    await this.saveAndCache(guildContext, storage);
   }
 
   public static async getCourseImplement(guildContext: GuildContext, course: PartialCourse): Promise<ICourseImplement | undefined> {
@@ -63,7 +82,8 @@ export class GuildStorageDatabaseService {
     else
       majorImplement.courseImplements.delete(course.key);
 
-    await storage.save();
+    storage.markModified(`majorImplements.${course.major.prefix}.courseImplements`);
+    await this.saveAndCache(guildContext, storage);
   }
 
   public static async getVerificationImplement(guildContext: GuildContext): Promise<IVerificationImplement | undefined> {
@@ -74,6 +94,6 @@ export class GuildStorageDatabaseService {
   public static async setVerificationImplement(guildContext: GuildContext, implement: IVerificationImplement): Promise<void> {
     const storage = await this.findOrCreateGuildStorage(guildContext);
     storage.verificationImplement = implement;
-    await storage.save();
+    await this.saveAndCache(guildContext, storage);
   }
 }

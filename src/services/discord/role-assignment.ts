@@ -53,7 +53,7 @@ export class DiscordRoleAssignmentService {
     }
 
     // Apply assignments.
-    guildContext.guildDebug(`+${rolesToAdd.length}/-${rolesToRemove.length} roles for ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
+    guildContext.guildLog(`+${rolesToAdd.length}/-${rolesToRemove.length} roles for ${DiscordUtils.describeUserForLogs(discordMember.user)}.`);
     if (rolesToAdd.length > 0)
       discordMember = await discordMember.roles.add(rolesToAdd, "StudyBot automatic role assignment.");
     if (rolesToRemove.length > 0)

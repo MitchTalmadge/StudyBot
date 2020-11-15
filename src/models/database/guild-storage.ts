@@ -12,7 +12,7 @@ export interface IGuildStorage extends Document {
 }
 
 export const GuildStorageSchema = new Schema({
-  guildId: { type: Schema.Types.String, required: true },
+  guildId: { type: Schema.Types.String, required: true, index: true },
 
   majorImplements: {
     type: Map,

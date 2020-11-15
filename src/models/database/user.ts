@@ -24,8 +24,8 @@ export interface IUserCourseAssignment {
 }
 
 export const UserSchema = new Schema({
-  discordUserId: { type: Schema.Types.String, required: true, unique: true },
-  studentId: { type: Schema.Types.String, required: false },
+  discordUserId: { type: Schema.Types.String, required: true, unique: true, index: true },
+  studentId: { type: Schema.Types.String, required: false, index: true },
   verificationStatus: { type: Schema.Types.Number, required: true, default: VerificationStatus.UNVERIFIED },
   verificationCode: { type: Schema.Types.String, required: false },
 
