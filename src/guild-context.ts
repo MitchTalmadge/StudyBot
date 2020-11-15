@@ -33,7 +33,7 @@ export class GuildContext {
    * The list of allowed courses that users can be assigned to.
    * May be empty if the list could not be populated automatically.
    */
-  public courses: { [majorPrefix: string]: Course[] };
+  public coursesByMajor: { [majorPrefix: string]: Course[] };
 
   public verificationRoleId: string;
 
@@ -51,7 +51,7 @@ export class GuildContext {
 
   private async init(): Promise<void> {
     this.guildLog("Initializing course lists...");
-    this.courses = await CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
+    this.coursesByMajor = await CourseService.fetchCourseList(this, new WebCatalogFactory().getWebCatalog(this.guildConfig.webCatalog))
       .catch(err => {
         this.guildError("Failed to get course lists from the web catalog:", err);
 
