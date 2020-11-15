@@ -8,12 +8,14 @@ import { DiscordUtils } from "utils/discord";
 import { CourseImplementService } from "../implement/course/implement";
 export class DiscordRoleAssignmentService {
   public static async computeAndApplyRoleChanges(guildContext: GuildContext, discordMember: Discord.GuildMember): Promise<void> {
+    guildContext.guildDebug(`[1] ${DiscordUtils.describeUserForLogs(discordMember.user)}`);
     const user = await UserDatabaseService.findOrCreateUser(discordMember.id, guildContext);
 
     const rolesToAdd: string[] = [];
     const rolesToRemove: string[] = [];
     
     // Verification 
+    guildContext.guildDebug(`[2] ${DiscordUtils.describeUserForLogs(discordMember.user)}`);
     if(ConfigService.getConfig().verification.enabled) {
       if(user.verificationStatus === VerificationStatus.VERIFIED) {
         if(!discordMember.roles.cache.has(guildContext.verificationRoleId))
@@ -24,9 +26,12 @@ export class DiscordRoleAssignmentService {
     }
 
     // Courses
+    guildContext.guildDebug(`[3] ${DiscordUtils.describeUserForLogs(discordMember.user)}`);
+    let i = 0;
     //TODO: Won't work for non-catalog majors
     for(let courses of Object.values(guildContext.courses)) {
       for(let course of courses) {
+        guildContext.guildDebug(`[3:${i}] ${DiscordUtils.describeUserForLogs(discordMember.user)}`);
         const assignment = user.guilds.get(guildContext.guild.id).courses.find(courseAssignment => courseAssignment.courseKey === course.key);
         if(assignment) { // User is assigned to course.
           const courseImplement = await CourseImplementService.getOrCreateCourseImplement(guildContext, course);
@@ -49,6 +54,7 @@ export class DiscordRoleAssignmentService {
               rolesToRemove.push(courseImplement.taRoleId);
           }
         }
+        i++;
       }
     }
 

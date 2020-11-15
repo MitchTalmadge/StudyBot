@@ -51,10 +51,10 @@ export class HealthAssuranceService {
     }
 
     // Synchronize roles.
-    /* await MemberUpdateService.queueSynchronizeRolesManyMembers(
+    await MemberUpdateService.queueSynchronizeRolesManyMembers(
       this.guildContext, 
       members.array().filter(m => m.user.id !== this.guildContext.guild.client.user.id)
-    ); */
+    );
 
     //const users = await UserDatabaseService.getAllUsers();
     
