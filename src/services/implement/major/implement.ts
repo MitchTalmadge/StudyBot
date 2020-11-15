@@ -364,7 +364,9 @@ export class MajorImplementService {
         if(!guildContext.guild.channels.resolve(id)) {
           guildContext.guildLog(`Removed missing category ID ${id} from ${major.prefix} major implement`);
           update = true;
+          return false;
         }
+        return true;
       });
     }
 
