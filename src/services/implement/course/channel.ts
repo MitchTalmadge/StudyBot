@@ -12,12 +12,32 @@ export class CourseChannelImplementService {
     categoryId: string,
     mainRoleId: string,
     taRoleId: string): Promise<Discord.Channel> {
+    let discordChannelType: any;
+    let topic = null;
+
     switch (type) {
       case CourseImplementChannelType.CHAT:
-        return this.createChatChannel(guildContext, course, categoryId, mainRoleId, taRoleId);
+        discordChannelType = "text";
+        topic = course.title ? `:information_source: ${course.title}` : "";
+        break;
       case CourseImplementChannelType.VOICE:
-        return this.createVoiceChannel(guildContext, course, categoryId, mainRoleId, taRoleId);
+        discordChannelType = "voice";
+        break;
     }
+
+    const channel = await guildContext.guild.channels.create(
+      CourseUtils.getChannelNameByType(course, type),
+      {
+        type: discordChannelType,
+        topic: topic,
+        parent: categoryId,
+        position: 0,
+        permissionOverwrites: this.generateChannelPermissionsByType(guildContext, type, mainRoleId, taRoleId),
+        reason: "StudyBot automatic course channel creation.",
+      }
+    );
+
+    return channel;
   }
 
   public static async resetChannelPermissionsByType(
@@ -36,9 +56,10 @@ export class CourseChannelImplementService {
     mainRoleId: string,
     taRoleId: string
   ): Discord.OverwriteResolvable[] {
+    let permissions: Discord.OverwriteResolvable[] = [];
     switch(type) {
       case CourseImplementChannelType.CHAT:
-        return [
+        permissions = [
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
@@ -60,8 +81,17 @@ export class CourseChannelImplementService {
             allow: ["VIEW_CHANNEL"]
           }
         ];
+
+        if(guildContext.guildConfig.studentAdvisoryCommittee) {
+          permissions.push({
+            type: "role",
+            id: guildContext.guildConfig.studentAdvisoryCommittee.roleId,
+            allow: ["VIEW_CHANNEL"]
+          });
+        }
+        break;
       case CourseImplementChannelType.VOICE:
-        return [
+        permissions = [
           {
             type: "role",
             id: guildContext.guild.roles.everyone.id,
@@ -84,47 +114,17 @@ export class CourseChannelImplementService {
             allow: ["VIEW_CHANNEL"]
           }
         ];
-    }    
-  }
 
-  public static async createChatChannel(
-    guildContext: GuildContext, 
-    course: Course, 
-    categoryId: string, 
-    mainRoleId: string, 
-    taRoleId: string): Promise<Discord.TextChannel> {
-    const channel = await guildContext.guild.channels.create(
-      CourseUtils.getChatChannelName(course),
-      {
-        type: "text",
-        topic: `:information_source: ${course.title}`,
-        parent: categoryId,
-        position: 0,
-        permissionOverwrites: this.generateChannelPermissionsByType(guildContext, CourseImplementChannelType.CHAT, mainRoleId, taRoleId),
-        reason: "StudyBot automatic course channel creation.",
-      }
-    );
-
-    return channel;
-  }
-
-  public static async createVoiceChannel(
-    guildContext: GuildContext, 
-    course: Course, 
-    categoryId: string, 
-    mainRoleId: string, 
-    taRoleId: string): Promise<Discord.VoiceChannel> {
-    const channel = await guildContext.guild.channels.create(
-      CourseUtils.getVoiceChannelName(course),
-      {
-        type: "voice",
-        parent: categoryId,
-        position: 0,
-        permissionOverwrites: this.generateChannelPermissionsByType(guildContext, CourseImplementChannelType.VOICE, mainRoleId, taRoleId),
-        reason: "StudyBot automatic course channel creation.",
-      }
-    );
-
-    return channel;
+        if(guildContext.guildConfig.studentAdvisoryCommittee) {
+          permissions.push({
+            type: "role",
+            id: guildContext.guildConfig.studentAdvisoryCommittee.roleId,
+            allow: ["VIEW_CHANNEL", "SPEAK", "STREAM"]
+          });
+        }
+        break;
+    }  
+    
+    return permissions;
   }
 }

@@ -164,7 +164,18 @@ export class ConfigService {
       if(!guild.verificationChannelId) {
         throw Error(`Guild ID ${guildId} configuration has missing or empty verification channel ID.`);
       }
+      this.validateGuildStudentAdvisoryCommitteeConfig(guildId);
       //TODO: web catalog validation.
     });
+  }
+
+  private static validateGuildStudentAdvisoryCommitteeConfig(guildId: string): void {
+    const guild = this.config.guilds[guildId];
+    if(guild.studentAdvisoryCommittee) {
+      if(!guild.studentAdvisoryCommittee.roleId) {
+        throw Error(`Guild ID ${guildId} configuration has missing or empty student advisory committee role ID. 
+        If you did not mean to enable the student advisory committee functionality, please remove its configuration section.`);
+      }
+    }
   }
 }
