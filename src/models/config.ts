@@ -55,4 +55,9 @@ export interface GuildConfig {
   moderatorCommandChannelId: string;
   courseSelectionChannelId: string;
   verificationChannelId: string;
+  studentAdvisoryCommittee?: GuildStudentAdvisoryCommitteeConfig;
+}
+
+export interface GuildStudentAdvisoryCommitteeConfig {
+  roleId: string
 }

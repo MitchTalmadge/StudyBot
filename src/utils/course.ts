@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 import { PartialCourse } from "models/course";
+import { CourseImplementChannelType } from "models/implement/course";
 import { Major } from "models/major";
 import { ConfigService } from "services/config";
 
@@ -49,11 +50,12 @@ export class CourseUtils {
     return `${course.key}-ta`;
   }
 
-  public static getChatChannelName(course: PartialCourse): string {
-    return course.key;
-  }
-
-  public static getVoiceChannelName(course: PartialCourse): string {
-    return `${course.key}-voice`;
+  public static getChannelNameByType(course: PartialCourse, type: CourseImplementChannelType): string {
+    switch(type) {
+      case CourseImplementChannelType.CHAT:
+        return course.key;
+      case CourseImplementChannelType.VOICE:
+        return `${course.key}-voice`;
+    }
   }
 }
