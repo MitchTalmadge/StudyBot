@@ -97,7 +97,14 @@ export class DirectMessageController {
 
     this.conversationStateMap[message.author.id] = ConversationState.FEEDBACK;
 
-    let greeting = "Awesome! It sounds like you want to send some feedback to the student advisory committee.\n\n" +
+    let greeting = "Awesome! It sounds like you want to send some feedback to the student advisory committee";
+    if(feedbackDestinations.length == 1) {
+      greeting += ` at the \`${feedbackDestinations[0].guild.name}\` server.\n\n`;
+    } else {
+      greeting += ".\n\n";
+    }
+    
+    greeting +=
     ":detective: Please know that this process is **completely** anonymous. Not even the admins or moderators of the server can " +
     "find out who sent feedback. I will not log any identifiable information about our conversation. (I am open source if you'd like to check!) " +
     "Confidentiality is top priority, so be open, and be honest! :)\n\n" + 
@@ -105,9 +112,8 @@ export class DirectMessageController {
 
     if(feedbackDestinations.length > 1) {
       greeting += 
-      "---------------------\n" +
-      "First things first, I need to know which server's committee this feedback should be sent to. \n" + 
-      "Please type the number corresponding to one of the following options:\n```\n";
+        ":thinking: First things first, I need to know which server's committee this feedback should be sent to.\n" + 
+        "Please type the number corresponding to one of the following options:\n```\n";
       
       for(let i = 0; i < feedbackDestinations.length; i++) {
         greeting += `${i+1}: ${feedbackDestinations[i].guild.name}\n`;
@@ -119,15 +125,9 @@ export class DirectMessageController {
       };
       await message.reply(greeting);
     } else {
-      const destination = feedbackDestinations[0];
-      greeting += 
-      "---------------------\n" +
-      `*Note:* This feedback will be sent to the student advisory committee over at the \`${destination.guild.name}\` server. ` +
-      "If this isn't what you intended, just say \"cancel\" and I will discard the feedback.";
-
       this.feedbackStateMap[message.author.id] = {
         stage: FeedbackStage.WRITE_MESSAGE,
-        destination
+        destination: feedbackDestinations[0]
       };
       await message.reply(greeting);
       await this.writeFeedbackPrompt(message);
