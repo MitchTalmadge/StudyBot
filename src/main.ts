@@ -1,3 +1,4 @@
+import { DirectMessageController } from "controllers/dm/direct-message";
 import * as Discord from "discord.js";
 import express from "express";
 import { DiscordUtils } from "utils/discord";
@@ -7,10 +8,13 @@ import { MajorMap } from "./models/major-map";
 import { ConfigService } from "./services/config";
 import { DatabaseService } from "./services/database/database";
 
+// TODO: Convert to non-static class
 export class StudyBot {
   public static client: Discord.Client;
 
   public static guildContexts: { [guildId: string]: GuildContext } = {};
+
+  private static directMessageController: DirectMessageController;
 
   public static async init() {
     // Load configuration.
@@ -64,6 +68,8 @@ export class StudyBot {
       console.log(`> [${guild.id}] ${guild.name}`);
     });
 
+    this.directMessageController = new DirectMessageController();
+
     this.createGuildContexts();
   }
 
@@ -105,7 +111,7 @@ export class StudyBot {
 
     // Handle private messages
     if(message.channel.type === "dm") {
-      message.reply("Hey there! Messages here don't get read. Please use the guild channels to join courses or do other things :) If you need help, PM a moderator! Have a good day!");
+      this.directMessageController.onMessageReceived(<Discord.Message>message);
       return;
     }
 
