@@ -19,10 +19,6 @@ export class SemesterResetService {
     {
       startOf: "fall",
       resetDate: moment("08/18", "MM/DD")
-    },
-    {
-      startOf: "fake",
-      resetDate: moment("12/16", "MM/DD")
     }
   ] 
 
