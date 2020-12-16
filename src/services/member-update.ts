@@ -63,6 +63,22 @@ export class MemberUpdateService {
     } );
   }
 
+  public static queueUnassignAllCoursesManyMembers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
+    return this.queue(guildContext, async () => {
+      guildContext.guildLog(`Unassigning all courses from ${members.length} members.`);
+  
+      let promises: Promise<void>[] = [];
+      for(let member of members) {
+        await UserDatabaseService.removeAllCoursesFromUser(guildContext, member.user.id);
+      }
+      await Promise.all(promises);
+      
+      await this.synchronizeRolesManyMembers(guildContext, members);
+
+      await MajorImplementService.cleanUpImplements(guildContext);
+    } );
+  }
+
   public static queueLeaveGuild(guildContext: GuildContext, discordUserId: string): Promise<void> {
     return this.queue(guildContext, async () => {
       guildContext.guildLog(`Performing guild-leave cleanup of user ID ${discordUserId}.`);
@@ -110,12 +126,16 @@ export class MemberUpdateService {
 
   public static queueSynchronizeRolesManyMembers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
     return this.queue(guildContext, async () => {
-      guildContext.guildLog(`Synchronizing roles for ${members.length} members...`);
-      let promises: Promise<void>[] = [];
-      for(let member of members) {
-        promises.push(DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member));
-      }
-      await Promise.all(promises);
+      await this.synchronizeRolesManyMembers(guildContext, members);
     });
+  }
+
+  private static async synchronizeRolesManyMembers(guildContext: GuildContext, members: Discord.GuildMember[]): Promise<void> {
+    guildContext.guildLog(`Synchronizing roles for ${members.length} members...`);
+    let promises: Promise<void>[] = [];
+    for(let member of members) {
+      promises.push(DiscordRoleAssignmentService.computeAndApplyRoleChanges(guildContext, member));
+    }
+    await Promise.all(promises);
   }
 }
