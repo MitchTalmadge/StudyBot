@@ -36,6 +36,7 @@
     "28357239856723895": {
       "majors": ["cs"],
       "webCatalog": "utah",
+      "announcementsChannelId": "23942374234334",
       "moderatorRoleId": "8236742893645345",
       "moderatorCommandChannelId": "3653476435525426",
       "courseSelectionChannelId": "34534643643455456",
@@ -47,6 +48,7 @@
     "89233498652365349": {
       "majors": ["phys", "chem"],
       "webCatalog": null,
+      "announcementsChannelId": "849235734907535",
       "moderatorRoleId": "2389723856725023",
       "moderatorCommandChannelId": "24365654856456436",
       "courseSelectionChannelId": "2345423523452335",

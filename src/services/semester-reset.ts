@@ -2,6 +2,7 @@ import { GuildContext } from "guild-context";
 import moment from "moment";
 import schedule from "node-schedule";
 
+import { AnnouncementsService } from "./announcements";
 import { UserDatabaseService } from "./database/user";
 import { MemberUpdateService } from "./member-update";
 
@@ -29,9 +30,9 @@ export class SemesterResetService {
   private job: schedule.Job;
   
   
-  constructor(private guildContext: GuildContext) {
+  constructor(private guildContext: GuildContext, private announcementsService: AnnouncementsService) {
     // TODO: Configurable timezone
-    this.job = schedule.scheduleJob("Semester Reset Check", { rule: "47 2 * * *", tz: "America/Denver" }, () => this.checkSemesterReset());
+    this.job = schedule.scheduleJob("Semester Reset Check", { rule: "0 12 * * *", tz: "America/Denver" }, () => this.checkSemesterReset());
     this.guildContext.guildLog("Semester reset check is scheduled daily starting at", moment(this.job.nextInvocation().toISOString()).format());
   }
 
@@ -78,7 +79,8 @@ export class SemesterResetService {
     }
 
     await MemberUpdateService.queueUnassignAllCoursesManyMembers(this.guildContext, membersToReset);
-    // TODO: Announcement
+    
+    await this.announcementsService.makeAnnouncement(`@everyone Welcome to ${startOf} semester! All course assignments from last semester have been removed (excluding changes from the last 30 days). If you are taking courses this semester, please head over to <#${this.guildContext.guildConfig.courseSelectionChannelId}> and join your courses! Thanks for being a part of the server :slight_smile:`);
 
     this.guildContext.guildLog("!!! Semester reset complete!");
   }
