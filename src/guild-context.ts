@@ -9,6 +9,7 @@ import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { HealthAssuranceService } from "services/health-assurance";
 import { MemberUpdateService } from "services/member-update";
+import { SemesterResetService } from "services/semester-reset";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
@@ -23,6 +24,8 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
+  private semesterResetService: SemesterResetService;
+
   private courseSelectionController: CourseSelectionChannelController;
   
   private verificationController: VerificationChannelController;
@@ -67,6 +70,9 @@ export class GuildContext {
     this.guildLog("Performing startup health checks...");
     await this.initHealth();
 
+    this.guildLog("Initializing services...");
+    this.initServices();
+
     this.guildLog("Initializing controllers...");
     this.initControllers();
 
@@ -79,6 +85,10 @@ export class GuildContext {
     this.verificationRoleId = await has.guaranteeVerificationRole();
     await has.guaranteeCourseImplements();
     await has.identifyAndFixHealthIssues();
+  }
+
+  private initServices(): void {
+    this.semesterResetService = new SemesterResetService(this);
   }
 
   private initControllers(): void {

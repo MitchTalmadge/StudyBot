@@ -26,7 +26,7 @@ export class UserDatabaseService {
       if(!user.guilds.has(guildContext.guild.id)) {
         user.guilds.set(guildContext.guild.id, {
           courses: [],
-          coursesLastUpdated: moment()
+          coursesLastUpdated: moment().toDate()
         });
 
         user = await user.save();
@@ -58,7 +58,7 @@ export class UserDatabaseService {
     guildData.courses = _
       .unionBy(guildData.courses, serializedCourses, course => course.courseKey)
       .sort((a, b) => a.courseKey.localeCompare(b.courseKey));
-    guildData.coursesLastUpdated = moment();
+    guildData.coursesLastUpdated = moment().toDate();
     await user.save();
   }
 
@@ -70,7 +70,7 @@ export class UserDatabaseService {
     guildData.courses = guildData.courses
       .filter(course => !courseKeys.includes(course.courseKey))
       .sort((a, b) => a.courseKey.localeCompare(b.courseKey));
-    guildData.coursesLastUpdated = moment();
+    guildData.coursesLastUpdated = moment().toDate();
     await user.save();
   }
 
@@ -79,7 +79,7 @@ export class UserDatabaseService {
 
     const guildData = user.guilds.get(guildContext.guild.id);
     guildData.courses = [];
-    guildData.coursesLastUpdated = moment();
+    guildData.coursesLastUpdated = moment().toDate();
     await user.save();
   }
 
@@ -106,7 +106,7 @@ export class UserDatabaseService {
       .forEach(course => {
         course.isTA = !course.isTA;
       });
-    guildData.coursesLastUpdated = moment();
+    guildData.coursesLastUpdated = moment().toDate();
     await user.save();
   }
   

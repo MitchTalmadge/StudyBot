@@ -9,15 +9,19 @@ export class SemesterResetService {
   private static readonly RESET_DATES: {startOf: string, resetDate: moment.Moment}[] = [
     {
       startOf: "spring",
-      resetDate: moment("01/05", "MM/DD"),
+      resetDate: moment("01/05", "MM/DD")
     },
     {
       startOf: "summer",
-      resetDate: moment("05/17", "MM/DD"),
+      resetDate: moment("05/17", "MM/DD")
     },
     {
       startOf: "fall",
       resetDate: moment("08/18", "MM/DD")
+    },
+    {
+      startOf: "fake",
+      resetDate: moment("12/16", "MM/DD")
     }
   ] 
 
@@ -27,8 +31,8 @@ export class SemesterResetService {
   
   constructor(private guildContext: GuildContext) {
     // TODO: Configurable timezone
-    this.job = schedule.scheduleJob("Semester Reset Check", { rule: "0 12 * * *", tz: "America/Denver" }, this.checkSemesterReset);
-    this.guildContext.guildLog("Semester reset check is scheduled daily starting at", this.job.nextInvocation());
+    this.job = schedule.scheduleJob("Semester Reset Check", { rule: "47 2 * * *", tz: "America/Denver" }, () => this.checkSemesterReset());
+    this.guildContext.guildLog("Semester reset check is scheduled daily starting at", moment(this.job.nextInvocation().toISOString()).format());
   }
 
   private checkSemesterReset() {
@@ -59,7 +63,7 @@ export class SemesterResetService {
 
     let usersToReset = (await UserDatabaseService.getAllUsers()).filter(user => {
       let guild = user.guilds.get(this.guildContext.guild.id);
-      return guild && guild.courses.length > 0 && moment.duration(guild.coursesLastUpdated.diff(moment())).asDays() < 30;
+      return guild && guild.courses.length > 0 && moment.duration(moment(guild.coursesLastUpdated).diff(moment())).asDays() < 30;
     });
     let userIdsToReset = usersToReset.map(user => user.discordUserId);
 
