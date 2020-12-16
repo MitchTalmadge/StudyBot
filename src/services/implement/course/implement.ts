@@ -26,6 +26,7 @@ export class CourseImplementService {
   }
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
+    guildContext.guildDebug("Creating course implement for", course);
     const majorCategoryIds = await MajorImplementService.getCategoryIdsForNewCourseImplement(guildContext, course.major);
     
     // Main Role
