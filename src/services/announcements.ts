@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { GuildContext } from "guild-context";
 import { exit } from "process";
+import { DiscordMessageUtils } from "utils/discord-message";
 
 export class AnnouncementsService {
   private announcementsChannel: Discord.TextChannel;
@@ -16,6 +17,6 @@ export class AnnouncementsService {
   }
 
   public async makeAnnouncement(message: string): Promise<void> {
-    await this.announcementsChannel.send(message);
+    await DiscordMessageUtils.sendMessage(this.announcementsChannel, message);
   }
 }
