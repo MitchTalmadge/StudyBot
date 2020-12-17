@@ -306,15 +306,15 @@ export class MajorImplementService {
     const reason = "Studybot automatic channel sorting";
     const channel = guildContext.guild.channels.resolve(channelId);
 
-    guildContext.guildDebug(`Channel ${channel.name} needs to be moved from category ${sourceCategoryIndex} to ${destinationCategoryIndex}.`);
+    guildContext.guildLog(`Channel ${channel.name} needs to be moved from category ${sourceCategoryIndex} to ${destinationCategoryIndex}.`);
 
     const sourceCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[sourceCategoryIndex]);
     const destinationCategory = <Discord.CategoryChannel>guildContext.guild.channels.resolve(implement.categoryIdsMatrix[type].categoryIds[destinationCategoryIndex]);
     
     // Simply move if no swap is needed.
     if(destinationCategory.children.size < this.MAX_CHANNELS_PER_CATEGORY) {
-      guildContext.guildDebug(`Moving ${channel.name}.`);
-      await channel.setParent(destinationCategory, { reason });
+      guildContext.guildLog(`Moving ${channel.name} within same category.`);
+      await channel.setParent(destinationCategory, { reason, lockPermissions: false });
       await DiscordUtils.refreshChannelsInCache(guildContext, [destinationCategory]);
       return;
     }
@@ -327,9 +327,9 @@ export class MajorImplementService {
     }, destinationCategory.children.first());
 
     // Swap across categories.
-    guildContext.guildDebug(`Swapping ${channel.name} and ${otherChannel.name}.`);
-    await channel.setParent(destinationCategory, { reason });
-    await otherChannel.setParent(sourceCategory, { reason });
+    guildContext.guildLog(`Swapping ${channel.name} and ${otherChannel.name} across categories.`);
+    await channel.setParent(destinationCategory, { reason, lockPermissions: false });
+    await otherChannel.setParent(sourceCategory, { reason, lockPermissions: false });
     await DiscordUtils.refreshChannelsInCache(guildContext, [destinationCategory, sourceCategory]);
   }
 
@@ -362,7 +362,7 @@ export class MajorImplementService {
     for(let categoryIdType of implement.categoryIdsMatrix) {
       categoryIdType.categoryIds = categoryIdType.categoryIds.filter(id => {
         if(!guildContext.guild.channels.resolve(id)) {
-          guildContext.guildLog(`Removed missing category ID ${id} from ${major.prefix} major implement`);
+          guildContext.guildLog(`Removed missing category ID ${id} from ${major.prefix} major implement.`);
           update = true;
           return false;
         }
