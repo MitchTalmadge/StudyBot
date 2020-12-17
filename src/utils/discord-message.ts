@@ -1,8 +1,9 @@
 import * as Discord from "discord.js";
 import { timer } from "rxjs";
-import { v4 as uuidv4 } from "uuid";
 
 export class DiscordMessageUtils {
+  static nonce = 1;
+
   /**
    * Deletes a user's message after an optional delay. (Return will not be wait for message to be deleted.)
    * @param message The message to delete.
@@ -26,9 +27,11 @@ export class DiscordMessageUtils {
    */
   public static async sendMessage(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: (Discord.MessageOptions & {split?: false}) | Discord.MessageAdditions): Promise<Discord.Message> {
     // Nonce prevents duplicate message requests (can happen during lag) from appearing as duplicate messages.
+    // TODO: A better nonce (needs to be 64 bit unsigned integer).
     if(!options) {
+      DiscordMessageUtils.nonce += 1;
       options = {
-        nonce: uuidv4()
+        nonce: DiscordMessageUtils.nonce.toString()
       };
     }
 
