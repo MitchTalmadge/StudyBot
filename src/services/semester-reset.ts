@@ -37,7 +37,7 @@ export class SemesterResetService {
     this.guildContext.guildLog("Checking if semester reset is today...");
     let now = moment();
     let matchingDates = SemesterResetService.RESET_DATES.filter(date => {
-      return date.resetDate.month == now.month && date.resetDate.date() == now.date();
+      return date.resetDate.month() == now.month() && date.resetDate.date() == now.date();
     });
 
     if(matchingDates.length == 0) {
