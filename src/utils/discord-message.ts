@@ -1,5 +1,6 @@
 import * as Discord from "discord.js";
 import { timer } from "rxjs";
+import { v4 as uuidv4 } from "uuid";
 
 export class DiscordMessageUtils {
   /**
@@ -24,6 +25,13 @@ export class DiscordMessageUtils {
    * @returns A promise that will resolve after the message has been sent.
    */
   public static async sendMessage(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: (Discord.MessageOptions & {split?: false}) | Discord.MessageAdditions): Promise<Discord.Message> {
+    // Nonce prevents duplicate message requests (can happen during lag) from appearing as duplicate messages.
+    if(!options) {
+      options = {
+        nonce: uuidv4()
+      };
+    }
+
     return await channel.send(content, options);
   }
 
