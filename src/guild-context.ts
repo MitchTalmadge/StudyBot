@@ -9,6 +9,7 @@ import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { HealthAssuranceService } from "services/health-assurance";
 import { MemberUpdateService } from "services/member-update";
+import { ResetService } from "services/reset";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
@@ -23,6 +24,8 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
+  private resetService: ResetService;
+
   private courseSelectionController: CourseSelectionChannelController;
   
   private verificationController: VerificationChannelController;
@@ -67,6 +70,9 @@ export class GuildContext {
     this.guildLog("Performing startup health checks...");
     await this.initHealth();
 
+    this.guildLog("Initializing services...");
+    this.initServices();
+
     this.guildLog("Initializing controllers...");
     this.initControllers();
 
@@ -81,12 +87,16 @@ export class GuildContext {
     await has.identifyAndFixHealthIssues();
   }
 
+  private initServices(): void {
+    this.resetService = new ResetService(this);
+  }
+
   private initControllers(): void {
     this.courseSelectionController = new CourseSelectionChannelController(this);
     this.verificationController = new VerificationChannelController(this);
 
     this.commandControllers.push(new DevCommandController(this));
-    this.commandControllers.push(new ModeratorCommandController(this));
+    this.commandControllers.push(new ModeratorCommandController(this, this.resetService));
   }
 
   public onMessageReceived(message: Discord.Message): void {

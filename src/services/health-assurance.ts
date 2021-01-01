@@ -27,7 +27,10 @@ export class HealthAssuranceService {
       let courseImplements = majorImplement[1].courseImplements;
       for (let courseImplement of courseImplements) {
         let course = CourseService.findCourseByKey(this.guildContext, courseImplement[0]);
-        // TODO: Check if course is null, do something
+        if(!course) {
+          this.guildContext.guildLog(`Cannot find course ${courseImplement[0]} by key. Will not guarantee.`);
+          continue;
+        }
         await CourseImplementService.guarantee(this.guildContext, course);
       }
     }

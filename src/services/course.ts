@@ -36,6 +36,7 @@ export class CourseService {
    * @returns The course if it could be found in the cache, otherwise null.
    */
   public static findCourseByKey(guildContext: GuildContext, key: string): Course | null {
+    // TODO: If we are not using the course catalog then perhaps we can re-build the course from the key?
     const allCourses = _.flatMap(guildContext.coursesByMajor);
     return allCourses.find(c => c.key == key);
   }

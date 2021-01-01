@@ -1,5 +1,3 @@
-// eslint-disable-next-line quotes
-import { Moment } from "moment";
 import mongoose, { Document, Schema } from "mongoose";
 
 import { VerificationStatus } from "../verification-status";
@@ -12,7 +10,7 @@ export interface IUser extends Document {
 
   guilds: Map<string, {
     courses: IUserCourseAssignment[];
-    coursesLastUpdated: Moment;
+    coursesLastUpdated: Date;
   }>
 
   banned: boolean;
