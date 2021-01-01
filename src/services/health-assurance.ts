@@ -34,6 +34,9 @@ export class HealthAssuranceService {
         await CourseImplementService.guarantee(this.guildContext, course);
       }
     }
+
+    // New channels could require re-sorting.
+    await MajorImplementService.sortAll(this.guildContext);
   }
 
   public async identifyAndFixHealthIssues() {
