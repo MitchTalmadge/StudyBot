@@ -22,7 +22,7 @@ export class ResetService {
     // Figure out who has not updated their assignments recently.
     let usersToReset = (await UserDatabaseService.getAllUsers()).filter(user => {
       let guild = user.guilds.get(this.guildContext.guild.id);
-      return guild && guild.courses.length > 0 && moment.duration(moment(guild.coursesLastUpdated).diff(moment())).asDays() < gracePeriodDays;
+      return guild?.courses.length > 0 && moment.duration(moment().diff(moment(guild?.coursesLastUpdated))).asDays() > gracePeriodDays;
     });
     let userIdsToReset = usersToReset.map(user => user.discordUserId);
 
