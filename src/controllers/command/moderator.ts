@@ -66,6 +66,7 @@ export class ModeratorCommandController extends CommandController {
       +" \n\tEither re-send a verification email, or forcefully assign the given student ID to the user."
       + "\n`!!reset [days]`"
       + "\n\tPerforms a full reset of all course assignments for anyone who has not updated their courses in the last [days] days. (Defaults to 30 days)."
+      + "\n\tWill also wipe all messages from course channels."
       + "\n\tOnly affects this guild; not the entire network."
     );
   }
@@ -226,6 +227,7 @@ export class ModeratorCommandController extends CommandController {
           DiscordMessageUtils.sendReply(message, `now resetting all course assignments older than ${pendingReset.days} days. Please wait...`);
           try {
             const numReset = await this.resetService.resetCourseAssignments(pendingReset.days);
+            await this.resetService.wipeCourseChannels();
             DiscordMessageUtils.sendReply(message, `reset complete! ${numReset} members have had their course assignments removed.`);
           } catch (err) {
             console.error("Failed to run course assignment reset by command:", err);

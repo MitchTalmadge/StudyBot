@@ -1,11 +1,14 @@
 import { GuildContext } from "guild-context";
+import { CourseImplementChannelType } from "models/implement/course";
 import moment from "moment";
 
+import { GuildStorageDatabaseService } from "./database/guild-storage";
 import { UserDatabaseService } from "./database/user";
+import { HealthAssuranceService } from "./health-assurance";
 import { MemberUpdateService } from "./member-update";
 
 export class ResetService {  
-  constructor(private guildContext: GuildContext) {
+  constructor(private guildContext: GuildContext, private healthAssuranceService: HealthAssuranceService) {
   }
 
   /**
@@ -17,7 +20,7 @@ export class ResetService {
    * @returns The number of members who had their courses unassigned.
    */
   public async resetCourseAssignments(gracePeriodDays = 30): Promise<number> {
-    this.guildContext.guildLog("!!! Reset initiated!");
+    this.guildContext.guildLog("!!! Resetting Course Assignments!");
 
     // Figure out who has not updated their assignments recently.
     let usersToReset = (await UserDatabaseService.getAllUsers()).filter(user => {
@@ -41,8 +44,29 @@ export class ResetService {
     // This will automatically clean up any un-used courses as well.
     await MemberUpdateService.queueUnassignAllCoursesManyMembers(this.guildContext, membersToReset);
     
-    this.guildContext.guildLog("!!! Reset complete!");
+    this.guildContext.guildLog("!!! Course Assignment Reset Complete!");
 
     return membersToReset.length;
   }
+
+  public async wipeCourseChannels(): Promise<void> {
+    this.guildContext.guildLog("!!! Wiping Course Channels!");
+
+    // Delete all course text channels, since Discord does not expose a way to clear a channel.
+    const guildStorage = await GuildStorageDatabaseService.findOrCreateGuildStorage(this.guildContext);
+    for(let majorImplement of guildStorage.majorImplements) {
+      let courseImplements = majorImplement[1].courseImplements;
+      for (let courseImplement of courseImplements) {
+        const channel = this.guildContext.guild.channels.resolve(courseImplement[1].channelIds[CourseImplementChannelType.CHAT]);
+        if(channel) {
+          await channel.delete("StudyBot Course Wipe");
+        }
+      }
+    }
+
+    // Re-build the deleted channels.
+    await this.healthAssuranceService.guaranteeCourseImplements();
+
+    this.guildContext.guildLog("!!! Course Channel Wipe Complete!");
+  } 
 }

@@ -24,6 +24,8 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
+  private healthAssuranceService: HealthAssuranceService;
+
   private resetService: ResetService;
 
   private courseSelectionController: CourseSelectionChannelController;
@@ -81,14 +83,14 @@ export class GuildContext {
   }
 
   private async initHealth(): Promise<void> {
-    let has = new HealthAssuranceService(this);
-    this.verificationRoleId = await has.guaranteeVerificationRole();
-    await has.guaranteeCourseImplements();
-    await has.identifyAndFixHealthIssues();
+    this.healthAssuranceService = new HealthAssuranceService(this);
+    this.verificationRoleId = await this.healthAssuranceService.guaranteeVerificationRole();
+    await this.healthAssuranceService.guaranteeCourseImplements();
+    await this.healthAssuranceService.identifyAndFixHealthIssues();
   }
 
   private initServices(): void {
-    this.resetService = new ResetService(this);
+    this.resetService = new ResetService(this, this.healthAssuranceService);
   }
 
   private initControllers(): void {
