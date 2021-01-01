@@ -5,7 +5,6 @@ import * as Discord from "discord.js";
 import _ from "lodash";
 import { Course } from "models/course";
 import { VerificationStatus } from "models/verification-status";
-import { AnnouncementsService } from "services/announcements";
 import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { HealthAssuranceService } from "services/health-assurance";
@@ -25,8 +24,6 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
  * Since each guild would have its own major, users, roles, channels, etc., this helps keep things separate.
  */
 export class GuildContext {
-  private announcementsService: AnnouncementsService;
-
   private resetService: ResetService;
 
   private courseSelectionController: CourseSelectionChannelController;
@@ -91,7 +88,6 @@ export class GuildContext {
   }
 
   private initServices(): void {
-    this.announcementsService = new AnnouncementsService(this);
     this.resetService = new ResetService(this);
   }
 
