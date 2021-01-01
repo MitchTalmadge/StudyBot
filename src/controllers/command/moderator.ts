@@ -1,15 +1,26 @@
 import * as Discord from "discord.js";
+import { GuildContext } from "guild-context";
 import { VerificationStatus } from "models/verification-status";
 import { BanService } from "services/ban";
 import { ConfigService } from "services/config";
 import { UserDatabaseService } from "services/database/user";
 import { MemberUpdateService } from "services/member-update";
+import { ResetService } from "services/reset";
 import { VerificationService } from "services/verification/verification";
 import { VerifierServiceFactory } from "services/verification/verifier-factory";
+import { DiscordMessageUtils } from "utils/discord-message";
 
 import { CommandController } from "./command-controller";
 
 export class ModeratorCommandController extends CommandController {
+  resetting = false;
+
+  pendingResets: {[discordId: string]: {days: number}} = {};
+
+  constructor(guildContext: GuildContext, private resetService: ResetService) {
+    super(guildContext);
+  }
+
   public onMessageReceived(message: Discord.Message): void {
     if(message.channel.id !== this.guildContext.guildConfig.moderatorCommandChannelId)
       return;
@@ -23,6 +34,9 @@ export class ModeratorCommandController extends CommandController {
     switch(tokens[0]) {
       case "ban":
         this.runBanCommand(message, tokens);
+        break;
+      case "reset":
+        this.runResetCommand(message, tokens);
         break;
       case "unban":
         this.runUnbanCommand(message, tokens);
@@ -39,56 +53,102 @@ export class ModeratorCommandController extends CommandController {
     }
   }
 
-  private displayHelp(message: Discord.Message | Discord.PartialMessage) {
-    message.reply(
-      "here are the valid commands:\n"
-      + "\t`!!whois <Discord User ID or Mention>`\t\tGives info about a user in the server (verification status, etc.)\n"
-      + "\t`!!verify email|manual <Student ID> <Discord User ID or Mention>`\t\tEither re-send a verification email, or forcefully assign the given student ID to the user.");
+  private displayHelp(message: Discord.Message) {
+    DiscordMessageUtils.sendReply(message, 
+      "here are the valid commands:"
+      + "\n\t`!!ban <Discord User ID or Mention>`\t\tPerforms a virtual network-wide ban of the user, and anyone else who verifies with the same student ID now or in the future."
+      + "\n\t`!!reset [days]`\t\tPerforms a full reset of all course assignments for anyone who has not updated their courses in the last [days] days. (Defaults to 30 days)."
+      + "\n\t`!!unban <Discord User ID or Mention>`\t\tRemoves the virtual ban from the network for the user."
+      + "\n\t`!!verify email|manual <Student ID> <Discord User ID or Mention>`\t\tEither re-send a verification email, or forcefully assign the given student ID to the user."
+      + "\n\t`!!whois <Discord User ID or Mention>`\t\tGives info about a user in the server (verification status, etc.)"
+    );
   }
 
   
 
-  private async runBanCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+  private async runBanCommand(message: Discord.Message, tokens: string[]) {
     if(tokens.length != 2) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
     const mentionMatch = tokens[1].match(/\d+/);
     if(!mentionMatch) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
 
     const userId = mentionMatch[0];
     await BanService.ban(userId);
-    message.reply(`the user with ID ${userId} has been banned from the network.`);
+    DiscordMessageUtils.sendReply(message, `the user with ID ${userId} has been banned from the network.`);
   }
 
-  private async runUnbanCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+  private async runResetCommand(message: Discord.Message, tokens: string[]) {
+    if(this.resetting) {
+      DiscordMessageUtils.sendReply(message, "a reset is currently in progress, please wait.");
+      return;
+    }
+
+    const pendingReset = this.pendingResets[message.author.id];
+    if(pendingReset) {
+      if(tokens.length == 2) {
+        if(tokens[1] === "confirm") {
+          // Here we go...
+          this.resetting = true;
+          delete this.pendingResets[message.author.id];
+          DiscordMessageUtils.sendReply(message, `now resetting all course assignments older than ${pendingReset.days} days. Please wait...`);
+          try {
+            const numReset = await this.resetService.resetCourseAssignments(pendingReset.days);
+            DiscordMessageUtils.sendReply(message, `reset complete! ${numReset} members have had their course assignments removed.`);
+          } catch (err) {
+            console.error("Failed to run course assignment reset by command:", err);
+            DiscordMessageUtils.sendReply(message, `uh oh, something went wrong and the reset may not have completed. The error is: ${err}`);
+          }
+          this.resetting = false;
+          return;
+        }
+      }
+    }    
+    
+    let days = 30;
+    if(tokens.length == 2) {
+      let parsedDays = Number.parseInt(tokens[1]);
+      if(parsedDays === NaN) {
+        DiscordMessageUtils.sendReply(message, `I could not parse ${tokens[1]} into a number of days. Please check your input.`);
+        return;
+      }
+      days = parsedDays;
+    }
+    
+    this.pendingResets[message.author.id] = { days };
+    DiscordMessageUtils.sendReply(message, `you have requested a reset of all course assignments older than ${days} days. 
+    If this is correct, say \`!!reset confirm\` and the reset will begin immediately.`);
+  }
+
+  private async runUnbanCommand(message: Discord.Message, tokens: string[]) {
     if(tokens.length != 2) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
     const mentionMatch = tokens[1].match(/\d+/);
     if(!mentionMatch) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
 
     const userId = mentionMatch[0];
     await BanService.unban(userId);
-    message.reply(`the user with ID ${userId} has been unbanned from the network.`);
+    DiscordMessageUtils.sendReply(message, `the user with ID ${userId} has been unbanned from the network.`);
   }
 
-  private async runVerifyCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+  private async runVerifyCommand(message: Discord.Message, tokens: string[]) {
     if(!ConfigService.getConfig().verification.enabled) {
-      message.reply("verification is disabled for this network.");
+      DiscordMessageUtils.sendReply(message, "verification is disabled for this network.");
       return;
     }
     const verifier = VerifierServiceFactory.getVerifier(ConfigService.getConfig().verification.verifier);
 
     if(tokens.length != 4) {
-      message.reply("please supply the correct arguments. See !!help.");
+      DiscordMessageUtils.sendReply(message, "please supply the correct arguments. See !!help.");
       return;
     }
 
@@ -96,52 +156,52 @@ export class ModeratorCommandController extends CommandController {
 
     const mentionMatch = tokens[3].match(/\d+/);
     if(!mentionMatch) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
 
     const userId = mentionMatch[0];
     const member = this.guildContext.guild.members.resolve(userId);
     if(!member) {
-      message.reply(`the user with ID ${userId} doesn't appear to be a part of this guild.`);
+      DiscordMessageUtils.sendReply(message, `the user with ID ${userId} doesn't appear to be a part of this guild.`);
       return;
     }
     
     switch(tokens[1].toLowerCase()) {
       case "email":
         if(!verifier.looksLikeStudentID(studentId)) {
-          message.reply("the student ID you provided doesn't look right. An email cannot be sent to the user.");
+          DiscordMessageUtils.sendReply(message, "the student ID you provided doesn't look right. An email cannot be sent to the user.");
           return;
         }
         await VerificationService.initiateByEmail(member.user, studentId);
-        message.reply("a verification email has just been sent to the user. They can enter the code in that email into the verification channel to finish verification.");
+        DiscordMessageUtils.sendReply(message, "a verification email has just been sent to the user. They can enter the code in that email into the verification channel to finish verification.");
         break;
       case "manual":
         await VerificationService.setVerifiedStatusManually(userId, studentId);
         await MemberUpdateService.queueMarkVerified(this.guildContext, member);
-        message.reply(`the user is now verified with student ID ${studentId}.`);
+        DiscordMessageUtils.sendReply(message, `the user is now verified with student ID ${studentId}.`);
         break;
       default:
-        message.reply(`${tokens[1]} is not a valid verification mode. Pick either email or manual.`);
+        DiscordMessageUtils.sendReply(message, `${tokens[1]} is not a valid verification mode. Pick either email or manual.`);
         return;
     }
   }
 
-  private async runWhoisCommand(message: Discord.Message | Discord.PartialMessage, tokens: string[]) {
+  private async runWhoisCommand(message: Discord.Message, tokens: string[]) {
     if(tokens.length != 2) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
     const mentionMatch = tokens[1].match(/\d+/);
     if(!mentionMatch) {
-      message.reply("please mention or give ID of one user.");
+      DiscordMessageUtils.sendReply(message, "please mention or give the ID of one user.");
       return;
     }
 
     const userId = mentionMatch[0];
     const user = await UserDatabaseService.getUserIfExists(userId);
     if(!user) {
-      message.reply(`the user with ID ${userId} does not exist in the database.`);
+      DiscordMessageUtils.sendReply(message, `the user with ID ${userId} does not exist in the database.`);
       return;
     }
 
@@ -185,6 +245,6 @@ export class ModeratorCommandController extends CommandController {
     + `- Network Status: ${guildStrings.length == 0 ? "Not a member of any network guild." : ""}\n`
     + guildStrings.join("\n");
 
-    message.reply(reply);
+    DiscordMessageUtils.sendReply(message, reply);
   }
 }

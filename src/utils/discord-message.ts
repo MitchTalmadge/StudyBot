@@ -2,8 +2,6 @@ import * as Discord from "discord.js";
 import { timer } from "rxjs";
 
 export class DiscordMessageUtils {
-  static nonce = 1;
-
   /**
    * Deletes a user's message after an optional delay. (Return will not be wait for message to be deleted.)
    * @param message The message to delete.
@@ -26,16 +24,25 @@ export class DiscordMessageUtils {
    * @returns A promise that will resolve after the message has been sent.
    */
   public static async sendMessage(channel: Discord.TextChannel | Discord.DMChannel | Discord.NewsChannel, content: string, options?: (Discord.MessageOptions & {split?: false}) | Discord.MessageAdditions): Promise<Discord.Message> {
-    // Nonce prevents duplicate message requests (can happen during lag) from appearing as duplicate messages.
-    // TODO: A better nonce (needs to be 64 bit unsigned integer).
+    // Nonces prevent duplicate messages from appearing due to network failures.
     if(!options) {
-      DiscordMessageUtils.nonce += 1;
       options = {
-        nonce: DiscordMessageUtils.nonce.toString()
+        nonce: this.generateNonce()
       };
     }
 
     return await channel.send(content, options);
+  }
+
+  /**
+   * Sends a reply safely using a nonce.
+   * @param message The original message.
+   * @param content The reply body (auto-prefixed with a mention, comma, space. e.g. `@MitchTalmadge, `)
+   */
+  public static async sendReply(message: Discord.Message, content: string) {
+    return await message.reply(content, {
+      nonce: this.generateNonce()
+    });
   }
 
   /**
@@ -58,5 +65,14 @@ export class DiscordMessageUtils {
     });
 
     return message;
+  }
+
+  /**
+  * Creates an approximately 15 digit unsigned nonce.
+  * This seems to be the max that Discord will take without truncating it.
+  */
+  private static generateNonce(): string {
+    const nonce = Math.round(Math.random() * Math.floor(Number.MAX_SAFE_INTEGER / 10)).toString(); // About 15 digits
+    return nonce;
   }
 }

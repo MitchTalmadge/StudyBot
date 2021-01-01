@@ -10,7 +10,7 @@ import { BanService } from "services/ban";
 import { UserDatabaseService } from "services/database/user";
 import { HealthAssuranceService } from "services/health-assurance";
 import { MemberUpdateService } from "services/member-update";
-import { SemesterResetService } from "services/semester-reset";
+import { ResetService } from "services/reset";
 import { DiscordUtils } from "utils/discord";
 
 import { CourseSelectionChannelController } from "./controllers/channel/course-selection";
@@ -27,7 +27,7 @@ import { WebCatalogFactory } from "./services/web-catalog/web-catalog-factory";
 export class GuildContext {
   private announcementsService: AnnouncementsService;
 
-  private semesterResetService: SemesterResetService;
+  private resetService: ResetService;
 
   private courseSelectionController: CourseSelectionChannelController;
   
@@ -92,7 +92,7 @@ export class GuildContext {
 
   private initServices(): void {
     this.announcementsService = new AnnouncementsService(this);
-    this.semesterResetService = new SemesterResetService(this, this.announcementsService);
+    this.resetService = new ResetService(this);
   }
 
   private initControllers(): void {
@@ -100,7 +100,7 @@ export class GuildContext {
     this.verificationController = new VerificationChannelController(this);
 
     this.commandControllers.push(new DevCommandController(this));
-    this.commandControllers.push(new ModeratorCommandController(this));
+    this.commandControllers.push(new ModeratorCommandController(this, this.resetService));
   }
 
   public onMessageReceived(message: Discord.Message): void {
