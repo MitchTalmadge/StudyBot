@@ -26,6 +26,7 @@ export class CourseImplementService {
   }
 
   private static async createCourseImplement(guildContext: GuildContext, course: Course): Promise<ICourseImplement> {
+    guildContext.guildDebug("Creating course implement for", course);
     const majorCategoryIds = await MajorImplementService.getCategoryIdsForNewCourseImplement(guildContext, course.major);
     
     // Main Role
@@ -59,7 +60,7 @@ export class CourseImplementService {
       return;
     }
 
-    guildContext.guildDebug(`Course ${course.key} is empty and will be cleaned up.`);
+    guildContext.guildLog(`Course ${course.key} is empty and will be cleaned up.`);
 
     for(let type of CourseImplementChannelType.values()) {
       await guildContext.guild.channels.resolve(implement.channelIds[type]).delete();
