@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
 import _ from "lodash";
 import { Course } from "models/course";
+import { CourseImplementChannelType } from "models/implement/course";
 import { Major } from "models/major";
 import { CourseService } from "services/course";
+import { CourseImplementService } from "services/implement/course/implement";
 import { MemberUpdateService } from "services/member-update";
 import { CourseUtils } from "utils/course";
 import { DiscordMessageUtils } from "utils/discord-message";
@@ -20,6 +22,19 @@ export class CourseSelectionChannelController extends ChannelController {
             DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}. However, the following courses do not appear to be valid: ${result.invalidCourseNames.join(", ")}.`);
           } else {
             DiscordMessageUtils.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
+          }
+
+          for(let course of result.validCourses) {
+            CourseImplementService.getCourseImplementIfExists(this.guildContext, course)
+              .then(implement => {
+                if(implement) {
+                  const courseChannel = this.guildContext.guild.channels.resolve(implement.channelIds[CourseImplementChannelType.CHAT]) as Discord.TextChannel
+                  courseChannel.send(`${message.author} has joined!`);
+                }
+              })
+              .catch(err => {
+                console.error("Could not get course implement when announcing user course join:", err);
+              })
           }
         })
         .catch(errorMessage => {
