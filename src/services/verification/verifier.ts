@@ -19,10 +19,17 @@ export abstract class VerifierService {
 
   public sendVerificationEmail(studentId: string, user: Discord.User, code: string): Promise<void> {
     console.log(`Sending verification code ${code} to ${DiscordUtils.describeUserForLogs(user)} by email.`);
+    const greeting = this.getRandomGreeting();
     return EmailService.sendEmail(this.convertStudentIDToEmailAddress(studentId),
-      `[${code}] Discord Verification`,
-      `Hey, ${user.username}#${user.discriminator}!\n\nTo complete verification, just type the following code into the verification channel: ${code}\n\n\n(If you did not expect this email, please disregard it. Someone probably made a typo when entering their own student ID.)`
+      `Discord Verification Code (${code})`,
+      `${greeting}, ${user.username}! Here's your code for the server: ${code}. Just type it into the verification channel to continue!\n\nIf you did not expect this email, please disregard it; it was probably just the result of a typo.`
     );
+  }
+
+  private static greetings = ["Hey", "Hi there", "Hiya", "Hello", "Howdy", "Aloha"];
+
+  private getRandomGreeting(): string {
+    return VerifierService.greetings[Math.floor(Math.random() * VerifierService.greetings.length - 1)];
   }
 }
 

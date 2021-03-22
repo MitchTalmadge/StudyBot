@@ -1,5 +1,6 @@
-import { ConfigService } from "./config";
 import nodemailer from "nodemailer";
+
+import { ConfigService } from "./config";
 
 export class EmailService {
   public static async sendEmail(to: string, subject: string, body: string): Promise<void> {
