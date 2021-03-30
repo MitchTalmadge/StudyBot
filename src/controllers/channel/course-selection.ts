@@ -27,14 +27,14 @@ export class CourseSelectionChannelController extends ChannelController {
           for(let course of result.validCourses) {
             CourseImplementService.getCourseImplementIfExists(this.guildContext, course)
               .then(implement => {
-                if(implement) {
-                  const courseChannel = this.guildContext.guild.channels.resolve(implement.channelIds[CourseImplementChannelType.CHAT]) as Discord.TextChannel
-                  courseChannel.send(`${message.author} has joined!`);
+                if (implement) {
+                  const courseChannel = this.guildContext.guild.channels.resolve(implement.channelIds[CourseImplementChannelType.CHAT]) as Discord.TextChannel;
+                  courseChannel.send(`Welcome, ${message.author}!`);
                 }
               })
               .catch(err => {
                 console.error("Could not get course implement when announcing user course join:", err);
-              })
+              });
           }
         })
         .catch(errorMessage => {
