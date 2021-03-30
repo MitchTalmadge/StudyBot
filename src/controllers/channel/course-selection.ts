@@ -29,7 +29,7 @@ export class CourseSelectionChannelController extends ChannelController {
               .then(implement => {
                 if (implement) {
                   const courseChannel = this.guildContext.guild.channels.resolve(implement.channelIds[CourseImplementChannelType.CHAT]) as Discord.TextChannel;
-                  courseChannel.send(`Welcome, ${message.author}!`);
+                  courseChannel?.send(`Welcome, ${message.author}!`);
                 }
               })
               .catch(err => {
