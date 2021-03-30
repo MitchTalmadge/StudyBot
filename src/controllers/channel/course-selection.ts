@@ -1,8 +1,10 @@
 import * as Discord from "discord.js";
 import _ from "lodash";
 import { Course } from "models/course";
+import { CourseImplementChannelType } from "models/implement/course";
 import { Major } from "models/major";
 import { CourseService } from "services/course";
+import { CourseImplementService } from "services/implement/course/implement";
 import { MemberUpdateService } from "services/member-update";
 import { CourseUtils } from "utils/course";
 import { DiscordMessageUtils } from "utils/discord-message";
@@ -21,9 +23,22 @@ export class CourseSelectionChannelController extends ChannelController {
           } else {
             DiscordMessageUtils.sendMessage(message.channel, `Success! ${message.author}, I have added you to the following courses: ${validCourseNames.join(", ")}.`); 
           }
+
+          for(let course of result.validCourses) {
+            CourseImplementService.getCourseImplementIfExists(this.guildContext, course)
+              .then(implement => {
+                if (implement) {
+                  const courseChannel = this.guildContext.guild.channels.resolve(implement.channelIds[CourseImplementChannelType.CHAT]) as Discord.TextChannel;
+                  courseChannel?.send(`Welcome, ${message.author}!`);
+                }
+              })
+              .catch(err => {
+                console.error("Could not get course implement when announcing user course join:", err);
+              });
+          }
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: join cs1410`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: join 1410`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("leave")) {
@@ -37,7 +52,7 @@ export class CourseSelectionChannelController extends ChannelController {
           }
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: leave cs1410`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: leave 1410`);
           // TODO: Better example.
         });
     } else if (message.content.toLowerCase().startsWith("ta")) {
@@ -55,12 +70,12 @@ export class CourseSelectionChannelController extends ChannelController {
             });
         })
         .catch(errorMessage => {
-          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: ta cs1410`);
+          DiscordMessageUtils.sendMessage(message.channel, `${errorMessage} Example usage: ta 1410`);
           // TODO: Better example.
         });
     } else {
       //TODO: Better example
-      DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join cs1410'`);
+      DiscordMessageUtils.sendMessage(message.channel, `${message.author}, I'm not sure what you want to do. Make sure your request starts with 'join', 'leave', or 'ta'. For example: 'join 1410'`);
     }
   }
 
