@@ -29,7 +29,7 @@ export abstract class VerifierService {
   private static greetings = ["Hey", "Hi there", "Hiya", "Hello", "Howdy", "Aloha"];
 
   private getRandomGreeting(): string {
-    return VerifierService.greetings[Math.floor(Math.random() * VerifierService.greetings.length - 1)];
+    return VerifierService.greetings[Math.floor(Math.random() * VerifierService.greetings.length)];
   }
 }
 
