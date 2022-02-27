@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv bash
 echo "Starting MongoDB..."
 exec 2>&1
-exec /usr/sbin/mongod --bind_ip 0.0.0.0
+exec /usr/bin/mongod --bind_ip 0.0.0.0
