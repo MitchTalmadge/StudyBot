@@ -16,6 +16,5 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repos
 RUN apk update
 RUN apk add mongodb yaml-cpp=0.6.2-r2
 
-RUN mkdir -p /etc/s6-overlay/s6-rc.d/
-RUN mv /app/s6/* /etc/s6-overlay/s6-rc.d/
-RUN rm -rf /app/s6
+RUN mkdir -p /etc/s6-overlay/
+RUN mv /app/s6-rc.d/ /etc/s6-overlay/
