@@ -1,4 +1,6 @@
 .github
 .vscode
+Dockerfile*
+migration
 node_modules
 temp

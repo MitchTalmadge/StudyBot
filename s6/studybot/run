@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Starting StudyBot..."
+exec /bin/npm run start --prefix /app

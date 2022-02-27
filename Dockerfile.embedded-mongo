@@ -1,0 +1,20 @@
+FROM ghcr.io/linuxserver/baseimage-alpine:3.15
+
+# Install nodejs
+RUN apk add --no-cache nodejs nodejs-npm
+
+# Copy StudyBot
+COPY . /app
+WORKDIR /app
+
+# Install StudyBot dependencies
+RUN npm install
+
+# Install mongodb
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/main' >> /etc/apk/repositories
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repositories
+RUN apk update
+RUN apk add mongodb yaml-cpp=0.6.2-r2
+
+RUN mv /app/s6/* /etc/s6-overlay/s6-rc.d/
+RUN rm -rf /app/s6
