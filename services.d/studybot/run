@@ -1,3 +1,4 @@
-#!/bin/sh
+#!/usr/bin/with-contenv bash
+sleep 5 # Allow MongoDB to start
 echo "Starting StudyBot..."
 exec /bin/npm run start --prefix /app
