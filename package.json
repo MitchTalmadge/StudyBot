@@ -46,7 +46,7 @@
         "mongodb-memory-server": "^6.9.2",
         "rimraf": "^3.0.2",
         "ts-node": "^9.0.0",
-        "tsconfig-paths": "^3.9.0",
+        "tsconfig-paths": "^3.10.1",
         "typescript": "^4.0.5"
     }
 }
